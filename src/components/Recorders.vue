@@ -105,12 +105,12 @@
                         console.log('blob', blob);
                         console.log('buffer', buffer);
 
-                        let formData = new FormData();
-                        formData.set('file', blob, 'recorder.wav')
-                        this.$http.sendRecorder(formData).then(res => {
-                            console.log(res);
-                        })
-                            .catch(err => console.log(err));
+                        this.chunkUpload({name:'recorder.wav',size:blob.size,file:blob})
+                        // let formData = new FormData();
+                        // formData.set('file', blob, 'recorder.wav')
+                        // this.$http.sendRecorder(formData).then(res => {
+                        //     console.log(res);
+                        // }).catch(err => console.log(err));
                     });
             },
             downloadRecording: function () {
@@ -131,24 +131,23 @@
             handleChange(file) {
                 console.log('handle change');
                 console.log(file);
-                this.chunkUpload(file);
+                this.chunkUpload({name:file.name,size:file.size,file:file.raw});
             },
             async chunkUpload(file) {
+                // file {name,size,file} ,for chunk
                 let chunkSize = 1024 * 1024;
                 let chunks = Math.ceil(file.size / chunkSize);
-                // let partFiles=[]
+                file.chunks=chunks; //
+                console.log('file chunks',chunks);
                 for (let i = 0; i < chunks; i++) {
                     let fname_part = `${file.name}_part_${i + 1}`;
                     let end = (i + 1) * chunkSize <= file.size ? (i + 1) * chunkSize : file.size;
-                    let file_part = file.raw.slice(i * chunkSize, end)
+                    let file_part = file.file.slice(i * chunkSize, end)
                     let formData = new FormData();
                     formData.set('file', file_part, fname_part)
-                    // partFiles.push(formData)
+                    formData.set('is_chunk',true)
                     await this.$http.sendRecorder(formData)
                 }
-                // this.$http.sendPartFiles(partFiles,file).then((res)=>{
-                //     console.log(res);
-                // })
                 this.$http.mergeFile(file).then(res=>{
                     console.log(res);
                 });
