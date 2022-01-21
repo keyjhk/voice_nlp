@@ -15,6 +15,9 @@ npm run serve
 npm run build
 ```
 
+### Edit Configs
+see `/src/config.js`
+
 ### Lints and fixes files
 ```
 npm run lint

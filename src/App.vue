@@ -1,16 +1,19 @@
 <template>
   <div id="app">
-    <recorders></recorders>
+<!--    <recorders></recorders>-->
+    <exercise-simulation></exercise-simulation>
   </div>
 </template>
 
 <script>
 
-import Recorders  from './components/Recorders'
+// import Recorders  from './components/Recorders'
+import ExerciseSimulation from "@/views/ExerciseSimulation";
 export default {
   name: 'App',
   components: {
-    Recorders,
+    ExerciseSimulation,
+    // Recorders,
   }
 }
 </script>
