@@ -233,10 +233,9 @@
 
                         <!-- Unnamed (矩形) -->
                         <div id="u1008" class="ax_default _默认样式">
-                            <div id="u1008_div" class="" style="visibility: hidden"></div>
+                            <div id="u1008_div" class=""></div>
                             <div id="u1008_text" class="text ">
-                                <el-button  :disabled="question==''" @click="playQuestion">{{!isPlayingQuestion?'播放':'取消'}}</el-button>
-                                <p class="question">{{question}}</p>
+                                <p><span>播放</span></p>
                             </div>
                         </div>
                     </div>
@@ -301,9 +300,9 @@
                     </div>
 
                     <!-- Unnamed (矩形) -->
-                    <div id="u1019" class="ax_default _默认样式" @click="getQuestion">
-                        <div id="u1019_div"></div>
-                        <div id="u1019_text" class="text " >
+                    <div id="u1019" class="ax_default _默认样式">
+                        <div id="u1019_div" class=""></div>
+                        <div id="u1019_text" class="text ">
                             <p><span>重新抽题</span></p>
                         </div>
                     </div>
@@ -371,7 +370,7 @@
                                     <div id="u1028" class="ax_default _默认样式" style="visibility: hidden">
                                         <div id="u1028_div" class=""></div>
                                         <div id="u1028_text" class="text " >
-                                                <el-button >重新录音</el-button>
+                                            <el-button >重新录音</el-button>
                                         </div>
                                     </div>
                                 </div>
@@ -419,7 +418,7 @@
 
                     <!-- 判定结果 (动态面板) -->
                     <div id="u1034" style="visibility: visible" class="ax_default" data-label="判定结果"
-                         >
+                    >
                         <div id="u1034_state0" class="panel_state" data-label="结果运算" style="">
                             <div id="u1034_state0_content" class="panel_state_content">
 
@@ -463,7 +462,7 @@
                                 <div id="u1039" class="ax_default _默认样式">
                                     <div id="u1039_div" class=""></div>
                                     <div id="u1039_text" class="text " v-show="submitted">
-<!--                                        <p><span></span></p>-->
+                                        <!--                                        <p><span></span></p>-->
                                         <p class="judge-text">要求时限：5:00</p>
                                     </div>
                                 </div>
@@ -998,17 +997,14 @@
     var recorder;
     var timer;
     var _blob;
-    var speaker=new SpeechSynthesisUtterance();
     export default {
-        name: "ExerciseSimulation",
+        name: "Test",
         data: () => {
             return {
                 boardShow:false,
-                isPlayingQuestion:false,
-                isRecording: false, // 录音中
-                isReplaying:false,  // 回放录音
+                isRecording: false,
+                isReplaying:false,
                 hasRecord:false,
-                question:'',
                 recordingTime: 0,
                 stopTime:0, // the time stopped
                 limitTime: 5 * 60,
@@ -1021,7 +1017,6 @@
         },
         mounted() {
             this.initRecorder();
-            this.initSpeaker();
         },
         computed: {
             recorderTimeText: function () {
@@ -1036,17 +1031,6 @@
                     return minutes + ':' + seconds;
                 } else {
                     return time < 10 ? '00:0' + time : '00:' + time;
-                }
-            },
-            initSpeaker:function(){
-                speaker.lang='zh';
-                speaker.rate=1.2;
-                speaker.pitch=1.5;
-                speaker.onstart = ()=>{
-                    this.isPlayingQuestion=true;
-                }
-                speaker.onend= () => {
-                    this.isPlayingQuestion=false;
                 }
             },
             initRecorder: function () {
@@ -1112,32 +1096,32 @@
                 Recorder.download(_blob, 'my-audio-file'); // downloads a .wav file
             },
             saveRecording:function(){
-              if(_blob){
-                  this.hasRecord=true;
-                  this.boardShow=false;
-              }
+                if(_blob){
+                    this.hasRecord=true;
+                    this.boardShow=false;
+                }
             },
             uploadRecording:function(){
                 // file:size,name,is_chunk
                 this.submitted=true;
                 var res;
-              if(this.chunkSend){
-                  let file={name: 'recorder.wav', size: _blob.size, file: _blob}
-                  res=this.chunkUpload(file);
-              }
-              else{
-                  let formData = new FormData();
-                  formData.set('file', _blob, 'recorder.wav')
-                  res=this.$http.sendRecorder(formData);
-              }
-              res.then(data=>{
-                  data=data.data;
-                  console.log('data:',data);
-                  this.file_url=data.url;
-                  let judge=(data.judge==true?'正确':'错误');
-                  console.log(judge,data.url);
-                  this.judgeResult=judge;
-              })
+                if(this.chunkSend){
+                    let file={name: 'recorder.wav', size: _blob.size, file: _blob}
+                    res=this.chunkUpload(file);
+                }
+                else{
+                    let formData = new FormData();
+                    formData.set('file', _blob, 'recorder.wav')
+                    res=this.$http.sendRecorder(formData);
+                }
+                res.then(data=>{
+                    data=data.data;
+                    console.log('data:',data);
+                    this.file_url=data.url;
+                    let judge=(data.judge==true?'正确':'错误');
+                    console.log(judge,data.url);
+                    this.judgeResult=judge;
+                })
             },
             async chunkUpload(file) {
                 // file {name,size,file} ,for chunk
@@ -1155,30 +1139,7 @@
                 }
                 return this.$http.mergeFile(file);
             },
-            getQuestion:function(){
-                this.$http.getQuestion().then(res=>{
-                    let question=res.data.text;
-                    console.log(question);
-                    this.question=question;
-                    // cancel first
-                    if(this.isPlayingQuestion){
-                        speechSynthesis.cancel();
-                    }
-                    speaker.text=this.question;
-                    speechSynthesis.speak(speaker);
-                })
-            },
-            playQuestion:function (replay) {
-                console.log(replay);
-                if(this.isPlayingQuestion){
-                    speechSynthesis.cancel();
-                }else{
-                    speaker.text=this.question;
-                    speechSynthesis.speak(speaker);
-                }
 
-
-            }
         }
     }
 </script>
@@ -1262,13 +1223,5 @@
         position: absolute;
         left: -30px;
         top:50px
-    }
-    .question{
-        width: 450px;
-        position: absolute;
-        left:15px;
-        top:50px;
-        font-weight: bold;
-        font-size: 15px;
     }
 </style>

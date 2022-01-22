@@ -38,6 +38,9 @@ class Http {
         return this.axios.post('message/', data);
     }
 
+    getQuestion(){
+        return this.axios.get('recorder/');
+    }
     sendRecorder(formdata) {
         // formdata
         return this.axios({

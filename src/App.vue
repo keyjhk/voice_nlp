@@ -1,19 +1,14 @@
 <template>
   <div id="app">
-<!--    <recorders></recorders>-->
-    <exercise-simulation></exercise-simulation>
+      <router-view></router-view>
   </div>
 </template>
 
 <script>
 
-// import Recorders  from './components/Recorders'
-import ExerciseSimulation from "@/views/ExerciseSimulation";
 export default {
   name: 'App',
   components: {
-    ExerciseSimulation,
-    // Recorders,
   }
 }
 </script>
