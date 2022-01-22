@@ -14,7 +14,7 @@ const routes=[
         path: "/",name:"app",
         component: App,
         children:[
-            {path:'',component: Navigation},  // default
+            {path:'',component: ExerciseSimulation},  // default
             {path:'navigation/',component: Navigation,name:'navigation'},
             {path:'exercise_simulation/',component: ExerciseSimulation,name:'exercise_simulation'},
             {path:'test/',component: Test,name:'test'},

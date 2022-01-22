@@ -6,6 +6,7 @@ import http from './utils/request'
 import router from './router'
 
 // global css
+import './styles/init.css'
 import './resources/css/axure_rp_page.css';
 import './data/styles.css';
 

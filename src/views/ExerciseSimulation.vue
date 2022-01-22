@@ -354,7 +354,7 @@
                         <div id="u1025" class="ax_default _默认样式" style="z-index: 99">
                             <div id="u1025_div" class=""></div>
                             <div id="u1025_text" class="text ">
-                                <el-button @click="boardShow=true">开始录音</el-button>
+                                <el-button @click="switchRecorderBoard">开始录音</el-button>
                             </div>
                         </div>
                     </div>
@@ -994,7 +994,8 @@
 </template>
 
 <script>
-    import Recorder from "recorder-js";    // 引入录音插件
+    import Recorder from "recorder-js";
+    var audioContext;
     var recorder;
     var timer;
     var _blob;
@@ -1020,7 +1021,6 @@
             }
         },
         mounted() {
-            this.initRecorder();
             this.initSpeaker();
         },
         computed: {
@@ -1038,6 +1038,13 @@
                     return time < 10 ? '00:0' + time : '00:' + time;
                 }
             },
+            switchRecorderBoard:function(){
+                // note ! audio must be created after user interaction
+                this.boardShow=true;
+                if(recorder==undefined){
+                    this.initRecorder();
+                }
+            },
             initSpeaker:function(){
                 speaker.lang='zh';
                 speaker.rate=1.2;
@@ -1049,30 +1056,39 @@
                     this.isPlayingQuestion=false;
                 }
             },
-            initRecorder: function () {
-                let audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                recorder = new Recorder(audioContext, {
-                    // An array of 255 Numbers
-                    // You can use this to visualize the audio stream
-                    // If you use react, check out react-wave-stream
-                    // onAnalysed: data => console.log(data),
-                });
+             initRecorder() {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                console.log('init audio',audioContext.state);
+                 recorder = new Recorder(audioContext, {
+                     // An array of 255 Numbers
+                     // You can use this to visualize the audio stream
+                     // If you use react, check out react-wave-stream
+                     onAnalysed: data => {
+                         // console.log(data);
+                         data;
+                     }
+                 });
+                 navigator.mediaDevices.getUserMedia({audio: true})
+                     .then(stream => {
+                         recorder.init(stream);
+                         console.log('recorder init successfully')
+                     })
+                     .catch(err => console.log('Uh oh... unable to get stream...', err));
 
-                navigator.mediaDevices.getUserMedia({audio: true})
-                    .then(stream => recorder.init(stream))
-                    .catch(err => console.log('Uh oh... unable to get stream...', err));
             },
             startRecording: function () {
                 return recorder.start().then(() => {
                     this.isRecording = true;
                     this.stopTime=0;
+                    this.recordingTime = 0;
                     timer = setInterval(() => {
                         this.recordingTime++;
                         if (this.recordingTime >= this.limitTime) {
                             this.stopRecording();
                         }
                     }, 1000)
-                })
+                }).catch(err=>{
+                    console.log(err)});
             },
             stopRecording: function () {
                 return recorder.stop()
@@ -1081,9 +1097,10 @@
                         this.isRecording = false;
                         clearInterval(timer);
                         this.stopTime=this.recordingTime;
-                        this.recordingTime = 0;
                         _blob=blob;
-                        console.log(blob,buffer);
+                        console.log('stop _blob',blob,buffer);
+                    }).catch(err=>{
+                        console.log(err);
                     });
             },
             restartRecording:function(){
@@ -1098,6 +1115,7 @@
             replayRecording:function(){
                 var player=this.$refs.recorderPlayer;
                 player.src=URL.createObjectURL(_blob);
+                console.log('回答录音',_blob);
                 player.addEventListener(
                     "loadeddata",
                     function() {
@@ -1168,8 +1186,7 @@
                     speechSynthesis.speak(speaker);
                 })
             },
-            playQuestion:function (replay) {
-                console.log(replay);
+            playQuestion:function () {
                 if(this.isPlayingQuestion){
                     speechSynthesis.cancel();
                 }else{
