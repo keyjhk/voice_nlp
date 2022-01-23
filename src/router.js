@@ -9,23 +9,30 @@ import App from './App.vue'
 import ExerciseSimulation from "@/views/ExerciseSimulation";
 import Test from "@/views/Test";
 import Navigation from "@/views/Navigation";
-const routes=[
+import AnswerIndex from "@/views/AnswerIndex";
+import Login from "@/views/Login";
+
+const routes = [
     {
-        path: "/",name:"app",
+        path: "/", name: "app",
         component: App,
-        children:[
-            {path:'',component: ExerciseSimulation},  // default
-            {path:'navigation/',component: Navigation,name:'navigation'},
-            {path:'exercise_simulation/',component: ExerciseSimulation,name:'exercise_simulation'},
-            {path:'test/',component: Test,name:'test'},
+        children: [
+            {path: '', component: Login},  // default
+            {path: 'navigation/', component: Navigation, name: 'navigation'},
+            {
+                path: 'exercise_simulation/', component: ExerciseSimulation, name: 'exercise_simulation',
+            },
+            {path: 'answer_index/', component: AnswerIndex, name: 'answer_index'},
+            {path: 'login/', component: Login, name: 'login'},
+            {path: 'test/', component: Test, name: 'test'},
         ],
     },
 
 ]
 
 
-const router=new VueRouter({
-    routes:routes
+const router = new VueRouter({
+    routes: routes
 });
 
 export default router

@@ -235,7 +235,9 @@
                         <div id="u1008" class="ax_default _默认样式">
                             <div id="u1008_div" class="" style="visibility: hidden"></div>
                             <div id="u1008_text" class="text ">
-                                <el-button  :disabled="question==''" @click="playQuestion">{{!isPlayingQuestion?'播放':'取消'}}</el-button>
+                                <el-button :disabled="question==''" @click="playQuestion">
+                                    {{!isPlayingQuestion?'播放':'取消'}}
+                                </el-button>
                                 <p class="question">{{question}}</p>
                             </div>
                         </div>
@@ -303,7 +305,7 @@
                     <!-- Unnamed (矩形) -->
                     <div id="u1019" class="ax_default _默认样式" @click="getQuestion">
                         <div id="u1019_div"></div>
-                        <div id="u1019_text" class="text " >
+                        <div id="u1019_text" class="text ">
                             <p><span>重新抽题</span></p>
                         </div>
                     </div>
@@ -348,7 +350,7 @@
                     </div>
 
                     <!-- Unnamed (组合) -->
-                    <div  id="u1024" class="ax_default" data-left="763" data-top="311" data-width="103" data-height="45">
+                    <div id="u1024" class="ax_default" data-left="763" data-top="311" data-width="103" data-height="45">
 
                         <!-- Unnamed (矩形) -->
                         <div id="u1025" class="ax_default _默认样式" style="z-index: 99">
@@ -360,9 +362,9 @@
                     </div>
 
                     <!-- 录音结束 (动态面板) -->
-                    <div id="u1026" class="ax_default"  data-label="录音结束" style="visibility: visible">
-                        <div id="u1026_state0" class="panel_state" data-label="State1" >
-                            <div id="u1026_state0_content" class="panel_state_content" >
+                    <div id="u1026" class="ax_default" data-label="录音结束" style="visibility: visible">
+                        <div id="u1026_state0" class="panel_state" data-label="State1">
+                            <div id="u1026_state0_content" class="panel_state_content">
 
                                 <!-- Unnamed (组合) -->
                                 <div id="u1027" class="ax_default" data-left="121" data-top="0" data-width="103"
@@ -370,17 +372,17 @@
                                     <!-- Unnamed (矩形) -->
                                     <div id="u1028" class="ax_default _默认样式" style="visibility: hidden">
                                         <div id="u1028_div" class=""></div>
-                                        <div id="u1028_text" class="text " >
-                                                <el-button >重新录音</el-button>
+                                        <div id="u1028_text" class="text ">
+                                            <el-button>重新录音</el-button>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Unnamed (矩形) -->
-                                <div id="u1029" class="ax_default _文本段落" >
+                                <div id="u1029" class="ax_default _文本段落">
                                     <div id="u1029_div" class=""></div>
                                     <div id="u1029_text" class="text ">
-                                        <p v-show="hasRecord" ><span>已完成录音回答</span></p>
+                                        <p v-show="hasRecord"><span>已完成录音回答</span></p>
                                     </div>
                                 </div>
 
@@ -392,9 +394,11 @@
                                     <div id="u1031" class="ax_default _默认样式">
                                         <div id="u1031_div" class=""></div>
                                         <div id="u1031_text" class="text ">
-                                            <el-button :disabled="!hasRecord" @click="replayRecording">回答录音播放</el-button>
+                                            <el-button :disabled="!hasRecord" @click="replayRecording">回答录音播放
+                                            </el-button>
                                         </div>
-                                        <video v-show="hasRecord" class='videoplayer' src="" ref="recorderPlayer" type="audio/wav"></video>
+                                        <video v-show="showPlayer" class='videoplayer' controls="controls" ref="recorderPlayer"
+                                               type="audio/wav"></video>
                                     </div>
                                 </div>
 
@@ -402,7 +406,9 @@
                                 <div id="u1032" class="ax_default _默认样式">
                                     <div id="u1032_div" style="background: none"></div>
                                     <div id="u1032_text" class="text ">
-                                        <el-button type="primary" size="large" :disabled="!hasRecord" @click="uploadRecording">提交判定</el-button>
+                                        <el-button type="primary" size="large" :disabled="!hasRecord || !allowed_post"
+                                                   @click="uploadRecording">提交判定
+                                        </el-button>
                                     </div>
                                 </div>
                             </div>
@@ -419,7 +425,7 @@
 
                     <!-- 判定结果 (动态面板) -->
                     <div id="u1034" style="visibility: visible" class="ax_default" data-label="判定结果"
-                         >
+                    >
                         <div id="u1034_state0" class="panel_state" data-label="结果运算" style="">
                             <div id="u1034_state0_content" class="panel_state_content">
 
@@ -463,7 +469,7 @@
                                 <div id="u1039" class="ax_default _默认样式">
                                     <div id="u1039_div" class=""></div>
                                     <div id="u1039_text" class="text " v-show="submitted">
-<!--                                        <p><span></span></p>-->
+                                        <!--                                        <p><span></span></p>-->
                                         <p class="judge-text">要求时限：5:00</p>
                                     </div>
                                 </div>
@@ -481,7 +487,8 @@
                                     <div id="u1041_div" class=""></div>
                                     <div id="u1041_text" class="text " v-show="submitted">
                                         <p><span>本次练习，您回答 </span>
-                                            <span class="judge-text">{{judgeResult==undefined?'待提交':judgeResult}}</span></p>
+                                            <span class="judge-text">{{judgeResult==undefined?'待提交':judgeResult}}</span>
+                                        </p>
                                     </div>
                                 </div>
 
@@ -497,7 +504,7 @@
                                 <div id="u1043" class="ax_default _文本段落" style="visibility: hidden">
                                     <div id="u1043_div" class=""></div>
                                     <div id="u1043_text" class="text ">
-                                        <p><span >本步骤综合得分</span></p>
+                                        <p><span>本步骤综合得分</span></p>
                                     </div>
                                 </div>
                             </div>
@@ -527,8 +534,10 @@
             <div class="board-foot">
                 <el-button class="button" :disabled="isRecording" @click="startRecording">开始</el-button>
                 <el-button :disabled="!isRecording" class="button" @click="restartRecording">重新开始</el-button>
-                <el-button :disabled="!isRecording" class="button" :type="isRecording?'danger':''" @click="stopRecording">结束</el-button>
-                <el-button :disabled="stopTime==0" class="button" type="primary"  @click="saveRecording">保存</el-button>
+                <el-button :disabled="!isRecording" class="button" :type="isRecording?'danger':''"
+                           @click="stopRecording">结束
+                </el-button>
+                <el-button :disabled="stopTime==0" class="button" type="primary" @click="saveRecording">保存</el-button>
             </div>
         </div>
 
@@ -802,7 +811,7 @@
                     <!-- Unnamed (矩形) -->
                     <div id="u1306" class="ax_default box_1">
                         <div id="u1306_div" class=""></div>
-                        <div id="u1306_text" class="text " >
+                        <div id="u1306_text" class="text ">
                             <p></p>
                         </div>
                     </div>
@@ -995,32 +1004,35 @@
 
 <script>
     import Recorder from "recorder-js";
+
     var audioContext;
     var recorder;
     var timer;
     var _blob;
-    var speaker=new SpeechSynthesisUtterance();
+    var speaker = new SpeechSynthesisUtterance();
     export default {
         name: "ExerciseSimulation",
         data: () => {
             return {
-                boardShow:false,
-                isPlayingQuestion:false,
+                boardShow: false,
+                isPlayingQuestion: false,
                 isRecording: false, // 录音中
-                isReplaying:false,  // 回放录音
-                hasRecord:false,
-                question:'',
+                showPlayer: false,  // 回放录音
+                hasRecord: false,
+                question: '',
                 recordingTime: 0,
-                stopTime:0, // the time stopped
+                stopTime: 0, // the time stopped
+                allowed_post: true,
                 limitTime: 5 * 60,
                 chunkSend: false,
-                submitted:false,
-                file_url:undefined,
-                judgeResult:undefined,
+                submitted: false,
+                file_url: undefined,
+                judgeResult: undefined,
 
             }
         },
         mounted() {
+            this.allowed_post = this.$route.query.ref == 'exam' ? true : false;
             this.initSpeaker();
         },
         computed: {
@@ -1029,7 +1041,7 @@
             },
         },
         methods: {
-            formatTime:function(time){
+            formatTime: function (time) {
                 if (time > 60) {
                     let minutes = parseInt(time / 60);
                     let seconds = time % 60;
@@ -1038,48 +1050,48 @@
                     return time < 10 ? '00:0' + time : '00:' + time;
                 }
             },
-            switchRecorderBoard:function(){
+            switchRecorderBoard: function () {
                 // note ! audio must be created after user interaction
-                this.boardShow=true;
-                if(recorder==undefined){
+                this.boardShow = true;
+                if (recorder == undefined) {
                     this.initRecorder();
                 }
             },
-            initSpeaker:function(){
-                speaker.lang='zh';
-                speaker.rate=1.2;
-                speaker.pitch=1.5;
-                speaker.onstart = ()=>{
-                    this.isPlayingQuestion=true;
+            initSpeaker: function () {
+                speaker.lang = 'zh';
+                speaker.rate = 1.2;
+                speaker.pitch = 1.5;
+                speaker.onstart = () => {
+                    this.isPlayingQuestion = true;
                 }
-                speaker.onend= () => {
-                    this.isPlayingQuestion=false;
+                speaker.onend = () => {
+                    this.isPlayingQuestion = false;
                 }
             },
-             initRecorder() {
+            initRecorder() {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                console.log('init audio',audioContext.state);
-                 recorder = new Recorder(audioContext, {
-                     // An array of 255 Numbers
-                     // You can use this to visualize the audio stream
-                     // If you use react, check out react-wave-stream
-                     onAnalysed: data => {
-                         // console.log(data);
-                         data;
-                     }
-                 });
-                 navigator.mediaDevices.getUserMedia({audio: true})
-                     .then(stream => {
-                         recorder.init(stream);
-                         console.log('recorder init successfully')
-                     })
-                     .catch(err => console.log('Uh oh... unable to get stream...', err));
+                console.log('init audio', audioContext.state);
+                recorder = new Recorder(audioContext, {
+                    // An array of 255 Numbers
+                    // You can use this to visualize the audio stream
+                    // If you use react, check out react-wave-stream
+                    onAnalysed: data => {
+                        // console.log(data);
+                        data;
+                    }
+                });
+                navigator.mediaDevices.getUserMedia({audio: true})
+                    .then(stream => {
+                        recorder.init(stream);
+                        console.log('recorder init successfully')
+                    })
+                    .catch(err => console.log('Uh oh... unable to get stream...', err));
 
             },
             startRecording: function () {
                 return recorder.start().then(() => {
                     this.isRecording = true;
-                    this.stopTime=0;
+                    this.stopTime = 0;
                     this.recordingTime = 0;
                     timer = setInterval(() => {
                         this.recordingTime++;
@@ -1087,8 +1099,9 @@
                             this.stopRecording();
                         }
                     }, 1000)
-                }).catch(err=>{
-                    console.log(err)});
+                }).catch(err => {
+                    console.log(err)
+                });
             },
             stopRecording: function () {
                 return recorder.stop()
@@ -1096,66 +1109,64 @@
                         // blob:binary files;buffer: AudioBuffer
                         this.isRecording = false;
                         clearInterval(timer);
-                        this.stopTime=this.recordingTime;
-                        _blob=blob;
-                        console.log('stop _blob',blob,buffer);
-                    }).catch(err=>{
+                        this.stopTime = this.recordingTime;
+                        _blob = blob;
+                        console.log('stop recording', blob, buffer);
+                    }).catch(err => {
                         console.log(err);
                     });
             },
-            restartRecording:function(){
-                if(this.isRecording){
-                    console.log('重新开始');
-                    this.stopRecording().then(()=>{
+            restartRecording: function () {
+                if (this.isRecording) {
+                    this.stopRecording().then(() => {
                         this.startRecording();
                     });
                 }
 
             },
-            replayRecording:function(){
-                var player=this.$refs.recorderPlayer;
-                player.src=URL.createObjectURL(_blob);
-                console.log('回答录音',_blob);
-                player.addEventListener(
-                    "loadeddata",
-                    function() {
-                        player.controls = "controls";
-                        player.play();//开始播放
-                    },
-                    false
-                );
+            replayRecording: function () {
+                // 回答录音播放
+                this.showPlayer = true;  // show video player
+                var player = this.$refs.recorderPlayer;
+                player.play();
+                // disable auto play
+                // player.addEventListener(
+                //     "loadeddata",
+                //     function () {
+                //         player.play();//开始播放
+                //     },
+                //     false
+                // );
 
             },
             downloadRecording: function () {
                 Recorder.download(_blob, 'my-audio-file'); // downloads a .wav file
             },
-            saveRecording:function(){
-              if(_blob){
-                  this.hasRecord=true;
-                  this.boardShow=false;
-              }
+            saveRecording: function () {
+                this.hasRecord = true;
+                this.boardShow = false;
+                this.$refs.recorderPlayer.src = URL.createObjectURL(_blob);
             },
-            uploadRecording:function(){
+            uploadRecording: function () {
                 // file:size,name,is_chunk
-                this.submitted=true;
-                var res;
-              if(this.chunkSend){
-                  let file={name: 'recorder.wav', size: _blob.size, file: _blob}
-                  res=this.chunkUpload(file);
-              }
-              else{
-                  let formData = new FormData();
-                  formData.set('file', _blob, 'recorder.wav')
-                  res=this.$http.sendRecorder(formData);
-              }
-              res.then(data=>{
-                  data=data.data;
-                  console.log('data:',data);
-                  this.file_url=data.url;
-                  let judge=(data.judge==true?'正确':'错误');
-                  console.log(judge,data.url);
-                  this.judgeResult=judge;
-              })
+                this.submitted = true;
+                let res;
+                if (this.chunkSend) {
+                    let file = {name: 'recorder.wav', size: _blob.size, file: _blob}
+                    res = this.chunkUpload(file);
+                } else {
+                    let formData = new FormData();
+                    formData.set('file', _blob, 'recorder.wav')
+                    res = this.$http.sendRecorder(formData);
+                }
+                res.then(data => {
+                    data = data.data;
+                    console.log('data:', data);
+                    this.file_url = data.url;
+                    let judge = (data.judge == true ? '正确' : '错误');
+                    console.log(judge, data.url);
+                    this.judgeResult = judge;
+                })
             },
             async chunkUpload(file) {
                 // file {name,size,file} ,for chunk
@@ -1173,24 +1184,24 @@
                 }
                 return this.$http.mergeFile(file);
             },
-            getQuestion:function(){
-                this.$http.getQuestion().then(res=>{
-                    let question=res.data.text;
+            getQuestion: function () {
+                this.$http.getQuestion().then(res => {
+                    let question = res.data.text;
                     console.log(question);
-                    this.question=question;
+                    this.question = question;
                     // cancel first
-                    if(this.isPlayingQuestion){
+                    if (this.isPlayingQuestion) {
                         speechSynthesis.cancel();
                     }
-                    speaker.text=this.question;
+                    speaker.text = this.question;
                     speechSynthesis.speak(speaker);
                 })
             },
-            playQuestion:function () {
-                if(this.isPlayingQuestion){
+            playQuestion: function () {
+                if (this.isPlayingQuestion) {
                     speechSynthesis.cancel();
-                }else{
-                    speaker.text=this.question;
+                } else {
+                    speaker.text = this.question;
                     speechSynthesis.speak(speaker);
                 }
 
@@ -1268,23 +1279,25 @@
         }
     }
 
-    .judge-text{
+    .judge-text {
         color: red;
         font-weight: bold;
         font-size: 16px;
     }
-    .videoplayer{
+
+    .videoplayer {
         width: 250px;
         height: 50px;
         position: absolute;
         left: -30px;
-        top:50px
+        top: 50px
     }
-    .question{
+
+    .question {
         width: 450px;
         position: absolute;
-        left:15px;
-        top:50px;
+        left: 15px;
+        top: 50px;
         font-weight: bold;
         font-size: 15px;
     }
