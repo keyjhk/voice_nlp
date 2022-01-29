@@ -1003,8 +1003,7 @@
 </template>
 
 <script>
-    import Recorder from "recorder-js";
-
+    import Recorder from "@/utils/recorder/recorder";
     var audioContext;
     var recorder;
     var timer;
@@ -1026,7 +1025,7 @@
                 limitTime: 5 * 60,
                 chunkSend: false,
                 submitted: false,
-                file_url: undefined,
+                file_url: undefined,  // blob
                 judgeResult: undefined,
 
             }
@@ -1105,12 +1104,13 @@
             },
             stopRecording: function () {
                 return recorder.stop()
-                    .then(({blob, buffer}) => {
-                        // blob:binary files;buffer: AudioBuffer
+                    .then(({blob, buffer,fileUrl}) => {
+                        // blob:binary files;buffer: AudioBuffer;file_url
                         this.isRecording = false;
                         clearInterval(timer);
                         this.stopTime = this.recordingTime;
                         _blob = blob;
+                        this.file_url = fileUrl;  //update file_url
                         console.log('stop recording', blob, buffer);
                     }).catch(err => {
                         console.log(err);
@@ -1129,23 +1129,17 @@
                 this.showPlayer = true;  // show video player
                 var player = this.$refs.recorderPlayer;
                 player.play();
-                // disable auto play
-                // player.addEventListener(
-                //     "loadeddata",
-                //     function () {
-                //         player.play();//开始播放
-                //     },
-                //     false
-                // );
 
             },
-            downloadRecording: function () {
-                Recorder.download(_blob, 'my-audio-file'); // downloads a .wav file
-            },
+            // downloadRecording: function () {
+            //     NewRecorder.download(_blob, 'my-audio-file'); // downloads a .wav file
+            // },
             saveRecording: function () {
                 this.hasRecord = true;
                 this.boardShow = false;
-                this.$refs.recorderPlayer.src = URL.createObjectURL(_blob);
+                console.log('update file url');
+                // this.$refs.recorderPlayer.src = URL.createObjectURL(_blob);
+                this.$refs.recorderPlayer.src = this.file_url;
             },
             uploadRecording: function () {
                 // file:size,name,is_chunk
@@ -1162,7 +1156,6 @@
                 res.then(data => {
                     data = data.data;
                     console.log('data:', data);
-                    this.file_url = data.url;
                     let judge = (data.judge == true ? '正确' : '错误');
                     console.log(judge, data.url);
                     this.judgeResult = judge;

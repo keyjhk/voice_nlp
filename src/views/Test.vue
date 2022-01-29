@@ -4,7 +4,7 @@
             <p class="title">模拟练习</p>
         </div>
         <div class="person-score-group">
-            <p class="person-title">客服代表岗位模拟训练</p>
+            <p class="person-title" @click="initRecorder">客服代表岗位模拟训练</p>
             <div class="person-info">
                 <div class="avatar">
                     <img class="image" src="../images/正式考试/u524.svg" alt="">
@@ -42,6 +42,7 @@
 
 <script>
     import Recorder from "recorder-js";    // 引入录音插件
+    import NewRecorder from "@/utils/recorder/recorder";
     var recorder;
     var timer;
     var _blob;
@@ -83,15 +84,10 @@
             },
             initRecorder: function () {
                 let audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                recorder = new Recorder(audioContext, {
-                    // An array of 255 Numbers
-                    // You can use this to visualize the audio stream
-                    // If you use react, check out react-wave-stream
-                    // onAnalysed: data => console.log(data),
-                });
-
+                let nrecorder=new NewRecorder(audioContext,{});
+                console.log(audioContext.state);
                 navigator.mediaDevices.getUserMedia({audio: true})
-                    .then(stream => recorder.init(stream))
+                    .then(stream => nrecorder.init(stream))
                     .catch(err => console.log('Uh oh... unable to get stream...', err));
             },
             startRecording: function () {
