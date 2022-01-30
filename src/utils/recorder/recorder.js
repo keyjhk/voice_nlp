@@ -9,7 +9,8 @@ const defaultConfig = {
 };
 
 var resampler = require('audio-resampler');
-console.log(typeof resampler);
+var towav = require('audiobuffer-to-wav');
+
 
 class Recorder {
     constructor(audioContext, config = {}) {
@@ -75,13 +76,19 @@ class Recorder {
             this.audioRecorder.stop();
 
             this.audioRecorder.getBuffer((buffer) => {
+                console.log(buffer);
                 this.audioRecorder.exportWAV(blob => {
-                    resampler(URL.createObjectURL(blob), resampleRate, event => {
-                            event.getFile(fileUrl => {
-                                resolve({buffer, blob,fileUrl});
+                    // resample
+                    resampler(URL.createObjectURL(blob),
+                        resampleRate, e => {
+                            let wav = towav(e.getAudioBuffer());
+                            let _blob = new Blob([wav],{type:'audio/wav'});
+                            resolve({
+                                buffer: wav,
+                                blob: _blob,
+                                fileUrl: URL.createObjectURL(_blob)
                             });
-                        }
-                    );
+                        });
                 })
             });
         });

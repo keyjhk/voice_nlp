@@ -1104,14 +1104,14 @@
             },
             stopRecording: function () {
                 return recorder.stop()
-                    .then(({blob, buffer,fileUrl}) => {
-                        // blob:binary files;buffer: AudioBuffer;file_url
+                    .then(({blob,fileUrl}) => {
+                        // blob:binary files;buffer: AudWioBuffer;file_url
                         this.isRecording = false;
                         clearInterval(timer);
                         this.stopTime = this.recordingTime;
                         _blob = blob;
                         this.file_url = fileUrl;  //update file_url
-                        console.log('stop recording', blob, buffer);
+                        console.log('stop recording');
                     }).catch(err => {
                         console.log(err);
                     });
@@ -1137,7 +1137,6 @@
             saveRecording: function () {
                 this.hasRecord = true;
                 this.boardShow = false;
-                console.log('update file url');
                 // this.$refs.recorderPlayer.src = URL.createObjectURL(_blob);
                 this.$refs.recorderPlayer.src = this.file_url;
             },
