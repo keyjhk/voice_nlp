@@ -136,7 +136,6 @@
             </div>
         </div>
     </div>
-
 </template>
 
 <script>
@@ -148,7 +147,7 @@
     var audioFile;
 
     export default {
-        name: "ExerciseSimulation",
+        name: "SimulExam",
         data: () => {
             return {
                 // question
@@ -207,11 +206,11 @@
 
             },
             controlRecording:function(){
-              if(this.isRecording){
-                  this.restartRecording();
-              }else {
-                  this.startRecording();
-              }
+                if(this.isRecording){
+                    this.restartRecording();
+                }else {
+                    this.startRecording();
+                }
 
             },
             startRecording: function () {
@@ -307,13 +306,29 @@
 </script>
 
 <style lang="scss">
+    @import "../files/模拟练习新/styles.css";
 
+    * {
+        font-size: 12px;
+    }
 
     .border {
         background-color: rgba(233, 233, 233, 1);
         height: 2px;
     }
 
+    .header {
+        height: 50px;
+        margin-top: 20px;
+
+        .title {
+            padding: 2px 2px 2px 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid rgba(0, 121, 254, 1);
+            line-height: 16px;
+
+        }
+    }
 
     .mainer {
         margin-top: 10px;
@@ -464,7 +479,7 @@
 
                     }
                     .left{
-                       width: 53px;
+                        width: 53px;
                         background: rgb(243,243,243);
 
                     }
@@ -524,7 +539,7 @@
                         }
 
                         .right-button-group{
-                                display: flex;
+                            display: flex;
                             justify-content: space-around;
                         }
                     }
@@ -564,6 +579,97 @@
         }
     }
 
+    .footer {
+        height: 100px;
+        text-align: center;
+    }
 
 
+    .recorder-board {
+        width: 600px;
+        position: fixed;
+        z-index: 100;
+        left: 30%;
+        top: 20%;
+        background: white;
+        border: 2px solid grey;
+
+        .board-top {
+            height: 20px;
+            padding: 10px;
+            color: #333333;
+            background: rgba(242, 242, 242, 1);
+            border-bottom: 1px solid grey;
+            border-radius: 3px;
+            font-family: '微软雅黑 Bold', '微软雅黑 Regular', '微软雅黑', sans-serif;
+            font-weight: 700;
+            font-style: normal;
+            font-size: 16px;
+            text-align: left;
+            line-height: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .board-middle {
+            border-bottom: 1px solid grey;
+            padding: 65px 60px;
+
+            .recorder-bar {
+                height: 60px;
+                padding: 0px 15px;
+                border: 1px solid grey;
+                border-radius: 5px;
+                box-shadow: 1px 1px 1px #888888;
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
+
+                .play {
+
+                }
+
+                .progress {
+                    width: 270px;
+                    margin-left: 15px;
+                    margin-right: 20px;
+                }
+            }
+
+        }
+
+        .board-foot {
+            height: 40px;
+            padding: 30px 60px;
+            display: flex;
+            justify-content: space-around;
+
+            .button {
+                margin-right: 15px;
+            }
+        }
+    }
+
+    .judge-text {
+        color: red;
+        font-weight: bold;
+        font-size: 16px;
+    }
+
+    .videoplayer {
+        width: 250px;
+        height: 50px;
+        position: absolute;
+        left: -30px;
+        top: 50px
+    }
+
+    .question {
+        width: 450px;
+        position: absolute;
+        left: 15px;
+        top: 50px;
+        font-weight: bold;
+        font-size: 15px;
+    }
 </style>

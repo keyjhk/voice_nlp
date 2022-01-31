@@ -11,8 +11,14 @@
 </template>
 
 <script>
+    // import {routes} from '../router'
     export default {
-        name: "Navigation"
+        name: "Navigation",
+        data:function () {
+            return {
+
+            }
+        }
     }
 </script>
 

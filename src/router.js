@@ -1,30 +1,34 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 
-//申明使用插件
 Vue.use(VueRouter)
 
-import App from './App.vue'
 // 定义顶层路由对象
-import ExerciseSimulation from "@/views/ExerciseSimulation";
+import Frame from "@/views/Frame";
+import JoinExam from "@/views/JoinExam";
+import SimulExam from "@/views/SimulExam";
 import Test from "@/views/Test";
 import Navigation from "@/views/Navigation";
 import AnswerIndex from "@/views/AnswerIndex";
 import Login from "@/views/Login";
 
+
 const routes = [
+    {path: '', redirect: '/login'},
+    {path: '/login', component: Login, name: 'login'},
+    {path: '/answer_index/', component: AnswerIndex,
+        name: 'answer_index', meta:{title:'答题人员首页'}},
     {
-        path: "/", name: "app",
-        component: App,
+        path: "/", component: Frame,
         children: [
-            {path: '', component: Login},  // default
-            {path: 'navigation/', component: Navigation, name: 'navigation'},
-            {
-                path: 'exercise_simulation/', component: ExerciseSimulation, name: 'exercise_simulation',
-            },
-            {path: 'answer_index/', component: AnswerIndex, name: 'answer_index'},
-            {path: 'login/', component: Login, name: 'login'},
-            {path: 'test/', component: Test, name: 'test'},
+
+            {path: 'navigation/', component: Navigation, name: 'navigation',
+                meta:{title:'导航'}},
+            {path: 'join_exam/', component: JoinExam,
+                name: 'join_exam', meta:{title:'参加考试'}},
+            {path: 'simul_exam/', component: SimulExam,
+                name: 'simul_exam', meta:{title:'模拟练习'}},
+            {path: 'test/', component: Test, name: 'test', meta:{title:'test'}},
         ],
     },
 
@@ -36,3 +40,4 @@ const router = new VueRouter({
 });
 
 export default router
+export {routes}

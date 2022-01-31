@@ -366,7 +366,7 @@
         <!-- Unnamed (组合) -->
         <div id="u290" class="ax_default" data-left="609" data-top="69" data-width="180" data-height="100">
             <!-- Unnamed (矩形) -->
-            <router-link :to="{name:'exercise_simulation',query:{ref:'simul'}}">
+            <router-link :to="{name:'simul_exam'}">
                 <div id="u291" class="ax_default _默认样式">
                     <div id="u291_div" class=""></div>
                     <div id="u291_text" class="text ">
@@ -380,7 +380,7 @@
         <div id="u292" class="ax_default" data-left="896" data-top="76" data-width="180" data-height="100">
 
             <!-- Unnamed (矩形) -->
-            <router-link :to="{name:'exercise_simulation',query:{ref:'exam'}}">
+            <router-link :to="{name:'join_exam'}">
                 <div id="u293" class="ax_default _默认样式">
                     <div id="u293_div" class=""></div>
                     <div id="u293_text" class="text ">
