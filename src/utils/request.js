@@ -38,9 +38,23 @@ class Http {
         return this.axios.post('message/', data);
     }
 
-    getQuestion(){
-        return this.axios.get('recorder/');
+    getQuestionList(){
+        return this.axios.get('recorder/question');
     }
+
+    judgeAnswer(audioFile,answer){
+        let formData = new FormData();
+        formData.set('file', audioFile, 'recorder.wav')
+        formData.set('answer',answer);
+
+        return this.axios({
+            url: 'recorder/question/',
+            data: formData,
+            method: 'post',
+            headers: {"Content-Type": "multipart/form-data"}
+        });
+    }
+
     sendRecorder(formdata) {
         // formdata
         return this.axios({

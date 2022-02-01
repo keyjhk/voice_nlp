@@ -70,7 +70,8 @@
                     <el-menu-item index="6">
                         <div slot="title" class="title">
                             <i class="el-icon-caret-right" style="color: white"></i>
-                            提升个人能力及心态</div>
+                            提升个人能力及心态
+                        </div>
                     </el-menu-item>
                 </el-menu>
             </div>
@@ -96,31 +97,21 @@
                     <div class="left"></div>
                     <div class="middle">
                         <p class="middle-title">开始接到商机话务</p>
-                        <p class="middle-question">题目1：请听以下录音，并回答</p>
-                        <p class="middle-quesiton-detail"></p>
+                        <p class="middle-question">题目{{questionIdx+1}}：请听以下录音，并回答</p>
+                        <p class="middle-quesiton-detail">
+                            {{question.question}}
+                        </p>
+                        <video ref="answerPlayer" src=""
+                               controls="controls" class="player" autoplay></video>
+
                         <div class="button-group">
-                            <el-button size="medium">跳过问题</el-button>
-                            <el-button size="medium" type="danger">结束考试</el-button>
+                            <el-button :disabled="!filePath" @click="replayAnswer">重新播放</el-button>
+                            <el-button type="primary"
+                                       @click="nextQuestion">继续下题
+                            </el-button>
                         </div>
                     </div>
-                    <div class="right">
-                        <p class="right-title">答题区</p>
-                        <div class="recorder-bar">
-                            <i v-show="!isRecording" class="iconfont icon-24gf-play" ></i>
-                            <i v-show="isRecording" class="iconfont icon-sound"></i>
-                            <el-progress class="progress" :show-text="false"
-                                         :stroke-width="10" :percentage="parseInt(recordingTime*100/limitTime)"
-                                         color="#2E70ED">
-                            </el-progress>
-                            <span>{{recorderTimeText}}/{{parseInt(limitTime/60)}}:00</span>
-                        </div>
-                        <video :src="audioUrl" controls="controls" class="player"></video>
-                        <div class="right-button-group">
-                            <el-button size="medium" :type="isRecording?'warning':'primary'"
-                                       @click="controlRecording">{{isRecording?'重新回答':'开始回答'}}</el-button>
-                            <el-button :disabled="!isRecording" size="medium" type="success" @click="stopRecording">提交回答</el-button>
-                        </div>
-                    </div>
+
                 </div>
                 <!--                    判定区域-->
                 <div class="judge-group">
@@ -128,9 +119,9 @@
                     <div class="judge-result">
                         <div class="time-tips">
                             <span class="time-tip">要求时限：5:00</span>
-                            <span class="time-tip">当前用时：{{recorderTimeText}}</span>
+                            <span class="time-tip">当前用时：5:00</span>
                         </div>
-                        <p class="result">本次练习，您回答{{judgeResult}}</p>
+                        <p class="result">本次练习，您回答</p>
                     </div>
                 </div>
             </div>
@@ -139,196 +130,54 @@
 </template>
 
 <script>
-    import Recorder from "@/utils/recorder/recorder";
-
-    var audioContext;
-    var recorder;
-    var timer;
-    var audioFile;
+    import {BASE_URL, STATIC_FILES} from "@/config";
 
     export default {
         name: "SimulExam",
         data: () => {
             return {
-                // question
-                question: '',
-                isPlayingQuestion: false,
-                // recording
-                isRecording: false,
-                recordingTime: 0,
-                stopTime: 0, // the time stopped
-                limitTime: 5 * 60,
-                audioFile:undefined,
-                audioUrl: undefined,  // blob
-                // upload
-                chunkSend: false,
-                submitted: false,
-                judgeResult: undefined,
+                questionList: [],
+                questionIdx: -1,
 
             }
         },
         mounted() {
+            this.getQuestion().then(() => {
+                this.nextQuestion();
+            });
         },
         computed: {
-            recorderTimeText: function () {
-                return this.formatTime(this.recordingTime);
+            question() {
+                return this.questionIdx > -1 ? this.questionList[this.questionIdx] : {}
             },
+            filePath() {
+                return BASE_URL + STATIC_FILES + this.question.path;
+            }
         },
         methods: {
-            formatTime: function (time) {
-                if (time > 60) {
-                    let minutes = parseInt(time / 60);
-                    let seconds = time % 60;
-                    return minutes + ':' + seconds;
-                } else {
-                    return time < 10 ? '00:0' + time : '00:' + time;
-                }
-            },
-
-            initRecorder() {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                console.log('init audio', audioContext.state);
-                recorder = new Recorder(audioContext, {
-                    // An array of 255 Numbers
-                    // You can use this to visualize the audio stream
-                    // If you use react, check out react-wave-stream
-                    onAnalysed: data => {
-                        // console.log(data);
-                        data;
-                    }
+            getQuestion() {
+                return this.$http.getQuestionList().then(res => {
+                    this.questionList = res.data;
                 });
-                return navigator.mediaDevices.getUserMedia({audio: true})
-                    .then(stream => {
-                        recorder.init(stream);
-                        console.log('recorder init successfully')
-                    })
-                    .catch(err => console.log('Uh oh... unable to get stream...', err));
-
             },
-            controlRecording:function(){
-                if(this.isRecording){
-                    this.restartRecording();
-                }else {
-                    this.startRecording();
+            nextQuestion() {
+                this.questionIdx = (this.questionIdx + 1) % this.questionList.length;
+                this.replayAnswer();
+            },
+            replayAnswer() {
+                let player = this.$refs.answerPlayer;
+                console.log(this.filePath);
+                if (this.filePath) {
+                    player.src = this.filePath;
+                    player.play();
                 }
-
-            },
-            startRecording: function () {
-                if(recorder==undefined){
-                    this.initRecorder().then(()=>{
-                        this.startRecording();
-                    });
-                }
-                else{
-                    return recorder.start().then(() => {
-                        this.isRecording = true;
-                        this.stopTime = 0;
-                        this.recordingTime = 0;
-                        timer = setInterval(() => {
-                            this.recordingTime++;
-                            if (this.recordingTime >= this.limitTime) {
-                                this.stopRecording();
-                            }
-                        }, 1000)
-                    }).catch(err => {
-                        console.log(err)
-                    });
-                }
-
-            },
-            stopRecording: function () {
-                return recorder.stop()
-                    .then(({blob,fileUrl}) => {
-                        // blob:binary files;buffer: AudWioBuffer;file_url
-                        console.log('stop recording');
-                        this.isRecording = false;
-                        clearInterval(timer);
-                        this.stopTime = this.recordingTime;
-                        this.audioFile = blob;
-                        this.audioUrl = fileUrl;  //update file_url
-                    }).catch(err => {
-                        console.log(err);
-                    });
-            },
-            restartRecording: function () {
-                if (this.isRecording) {
-                    this.stopRecording().then(() => {
-                        this.startRecording();
-                    });
-                }
-
-            },
-
-            uploadRecording: function () {
-                // file:size,name,is_chunk
-                this.submitted = true;
-                let res;
-                if (this.chunkSend) {
-                    let file = {name: 'recorder.wav', size: audioFile.size, file: audioFile}
-                    res = this.chunkUpload(file);
-                } else {
-                    let formData = new FormData();
-                    formData.set('file', audioFile, 'recorder.wav')
-                    res = this.$http.sendRecorder(formData);
-                }
-                res.then(data => {
-                    data = data.data;
-                    console.log('data:', data);
-                    let judge = (data.judge == true ? '正确' : '错误');
-                    console.log(judge, data.url);
-                    this.judgeResult = judge;
-                })
-            },
-            async chunkUpload(file) {
-                // file {name,size,file} ,for chunk
-                let chunkSize = 1024 * 1024;
-                let chunks = Math.ceil(file.size / chunkSize);
-                file.chunks = chunks; //
-                for (let i = 0; i < chunks; i++) {
-                    let fname_part = `${file.name}_part_${i + 1}`;
-                    let end = (i + 1) * chunkSize <= file.size ? (i + 1) * chunkSize : file.size;
-                    let file_part = file.file.slice(i * chunkSize, end)
-                    let formData = new FormData();
-                    formData.set('file', file_part, fname_part)
-                    formData.set('is_chunk', true)
-                    await this.$http.sendRecorder(formData)
-                }
-                return this.$http.mergeFile(file);
-            },
-            getQuestion: function () {
-                this.$http.getQuestion().then(res => {
-                    let question = res.data.text;
-                    this.question = question;
-                })
-            },
+            }
         }
+
     }
 </script>
 
-<style lang="scss">
-    @import "../files/模拟练习新/styles.css";
-
-    * {
-        font-size: 12px;
-    }
-
-    .border {
-        background-color: rgba(233, 233, 233, 1);
-        height: 2px;
-    }
-
-    .header {
-        height: 50px;
-        margin-top: 20px;
-
-        .title {
-            padding: 2px 2px 2px 10px;
-            margin-bottom: 10px;
-            border-left: 4px solid rgba(0, 121, 254, 1);
-            line-height: 16px;
-
-        }
-    }
+<style lang="scss" scoped>
 
     .mainer {
         margin-top: 10px;
@@ -386,19 +235,6 @@
                         text-align: center;
                         display: flex;
 
-                        .el-descriptions-item__cell {
-                            height: 90px;
-                            text-align: center;
-                        }
-
-                        .el-descriptions-item__label {
-                            width: 143px;
-                        }
-
-                        .el-descriptions-item__content {
-                            width: 115px;
-                        }
-
                     }
 
 
@@ -425,7 +261,7 @@
 
         .course-answer {
             border: 2px solid rgba(233, 233, 233, 1);
-            margin-top:20px;
+            margin-top: 20px;
             height: 900px;
             display: flex;
             justify-content: left;
@@ -433,15 +269,16 @@
             .course {
                 width: 230px;
                 height: 100%;
-                border-right:1px solid rgba(233, 233, 233, 1) ;
-                .course-title{
+                border-right: 1px solid rgba(233, 233, 233, 1);
+
+                .course-title {
                     padding: 2px 2px 2px 20px;
                     height: 40px;
                     line-height: 40px;
                     font-weight: bold;
                 }
 
-                .el-menu-item{
+                .el-menu-item {
                     width: 100%;
                     height: 50px;
                     margin-top: 20px;
@@ -455,112 +292,102 @@
             /*答题*/
             .answer {
                 width: 1000px;
-                padding:0px 20px 0px 20px;
+                padding: 0px 20px 0px 20px;
                 height: 100%;
-                .steps{
+
+                .steps {
                     margin-top: 20px;
                 }
-                .tips{
-                    margin:20px 0px ;
+
+                .tips {
+                    margin: 20px 0px;
                     padding: 16px 24px 16px 64px;
-                    background:  rgb(230,247,255);
-                    p{
+                    background: rgb(230, 247, 255);
+
+                    p {
                         height: 28px;
                     }
                 }
 
-                .answer-group{
+                .answer-group {
                     height: 330px;
                     margin-bottom: 20px;
                     display: flex;
                     justify-content: left;
-                    .left,.middle,.right{
+
+                    .left, .middle, .right {
                         border: 1px solid rgba(233, 233, 233, 1);
 
                     }
-                    .left{
+
+                    .left {
                         width: 53px;
-                        background: rgb(243,243,243);
+                        background: rgb(243, 243, 243);
 
                     }
-                    .middle{
+
+                    .middle {
                         padding: 20px 35px;
-                        width: 720px;
-                        margin-right: 20px;
+                        /*width: 1100px;*/
+                        flex: 1;
                         display: flex;
                         flex-direction: column;
-                        justify-content: space-around;
-                        .middle-title{
+                        justify-content: space-between;
+
+                        .middle-title {
                             color: #3a8ee6;
                             height: 28px;
                             line-height: 28px;
                             margin-bottom: 10px;
                         }
-                        .middle-question{
+
+                        .middle-question {
                             height: 40px;
                             line-height: 40px;
+                            font-size: 20px;
+                            font-weight: bold;
+                            margin-bottom: 10px;
                         }
-                        .middle-quesiton-detail{
-                            height: 200px;
+
+                        .middle-quesiton-detail {
+                            height: 150px;
                             margin-bottom: 5px;
+                            font-size: 20px;
                         }
-                        .button-group{
+
+                        .player {
+                            height: 50px;
+                            display: none;
+                        }
+
+                        .button-group {
                             display: flex;
                             justify-content: flex-end;
                         }
                     }
-                    .right{
-                        padding: 20px 35px;
-                        width: 380px;
-                        display: flex;
-                        flex-direction: column;
-                        justify-content: space-between;
-                        .right-title{
-                            padding: 0px 20px;
-                            height: 35px;
-                            line-height: 35px;
-                            border: 1px solid rgba(233, 233, 233, 1);
-                            background: rgb(243,243,243);
 
-                        }
-                        .recorder-bar{
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                            .progress{
-                                width: 100%;
-                                margin: 0px 5px;
-                            }
-                        }
-
-                        .player{
-                            height: 50px;
-                            display:none;
-                        }
-
-                        .right-button-group{
-                            display: flex;
-                            justify-content: space-around;
-                        }
-                    }
                 }
 
-                .judge-group{
+                .judge-group {
                     padding: 20px 45px;
                     border: 1px solid rgba(233, 233, 233, 1);
-                    .title{
-                        padding:0px 30px 0px 20px ;
-                        background: rgb(243,243,243);
+
+                    .title {
+                        padding: 0px 30px 0px 20px;
+                        background: rgb(243, 243, 243);
                         height: 36px;
                         line-height: 36px;
 
                     }
-                    .judge-result{
+
+                    .judge-result {
                         height: 170px;
-                        display: flex;
+                        /*display: flex;*/
+                        visibility: hidden;
                         flex-direction: column;
                         justify-content: space-evenly;
-                        .time-tip{
+
+                        .time-tip {
                             font-size: 20px;
                             margin-right: 40px;
                             height: 40px;
@@ -568,7 +395,8 @@
                             color: red;
                             font-weight: bold;
                         }
-                        .result{
+
+                        .result {
                             height: 20px;
                             line-height: 20px;
                             font-size: 16px;
@@ -579,97 +407,20 @@
         }
     }
 
-    .footer {
-        height: 100px;
+
+</style>
+
+<style lang="scss">
+    .el-descriptions-item__cell {
+        height: 90px;
         text-align: center;
     }
 
-
-    .recorder-board {
-        width: 600px;
-        position: fixed;
-        z-index: 100;
-        left: 30%;
-        top: 20%;
-        background: white;
-        border: 2px solid grey;
-
-        .board-top {
-            height: 20px;
-            padding: 10px;
-            color: #333333;
-            background: rgba(242, 242, 242, 1);
-            border-bottom: 1px solid grey;
-            border-radius: 3px;
-            font-family: '微软雅黑 Bold', '微软雅黑 Regular', '微软雅黑', sans-serif;
-            font-weight: 700;
-            font-style: normal;
-            font-size: 16px;
-            text-align: left;
-            line-height: 20px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .board-middle {
-            border-bottom: 1px solid grey;
-            padding: 65px 60px;
-
-            .recorder-bar {
-                height: 60px;
-                padding: 0px 15px;
-                border: 1px solid grey;
-                border-radius: 5px;
-                box-shadow: 1px 1px 1px #888888;
-                display: flex;
-                justify-content: space-around;
-                align-items: center;
-
-                .play {
-
-                }
-
-                .progress {
-                    width: 270px;
-                    margin-left: 15px;
-                    margin-right: 20px;
-                }
-            }
-
-        }
-
-        .board-foot {
-            height: 40px;
-            padding: 30px 60px;
-            display: flex;
-            justify-content: space-around;
-
-            .button {
-                margin-right: 15px;
-            }
-        }
+    .el-descriptions-item__label {
+        width: 143px;
     }
 
-    .judge-text {
-        color: red;
-        font-weight: bold;
-        font-size: 16px;
-    }
-
-    .videoplayer {
-        width: 250px;
-        height: 50px;
-        position: absolute;
-        left: -30px;
-        top: 50px
-    }
-
-    .question {
-        width: 450px;
-        position: absolute;
-        left: 15px;
-        top: 50px;
-        font-weight: bold;
-        font-size: 15px;
+    .el-descriptions-item__content {
+        width: 115px;
     }
 </style>
