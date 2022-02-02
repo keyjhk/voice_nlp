@@ -98,18 +98,30 @@
                     <div class="middle">
                         <p class="middle-title">开始接到商机话务</p>
                         <p class="middle-question">题目{{questionIdx+1}}：请听以下录音，并回答</p>
-                        <p class="middle-quesiton-detail">
-                            {{question.question}}
-                        </p>
-                        <video ref="answerPlayer" src=""
-                               controls="controls" class="player" autoplay></video>
+                        <!--                        题目详情-->
+                        <div class="middle-question-group" >
+                            <p class="middle-quesiton-detail">
+                                {{question.question}}
+                            </p>
+                            <video ref="answerPlayer" src=""
+                                   controls="controls" class="player"></video>
 
-                        <div class="button-group">
-                            <el-button :disabled="!filePath" @click="replayAnswer">重新播放</el-button>
-                            <el-button type="primary"
-                                       @click="nextQuestion">继续下题
-                            </el-button>
+                            <div class="button-group">
+                                <el-button  type="primary"
+                                            @click="startTrain"
+                                            v-show="questionList.length==0">开始训练</el-button>
+
+                                <el-button v-show="questionList.length>0"
+                                           @click="reAnswer"
+                                           type="danger">重新开始
+                                </el-button>
+                                <el-button v-show="questionList.length>0"
+                                           @click="nextQuestion">
+                                    跳过问题{{countDown>0?`(${countDown}s)`:''}}
+                                </el-button>
+                            </div>
                         </div>
+
                     </div>
 
                 </div>
@@ -132,19 +144,19 @@
 <script>
     import {BASE_URL, STATIC_FILES} from "@/config";
 
+    var countDownTimer;
     export default {
         name: "SimulExam",
         data: () => {
             return {
                 questionList: [],
                 questionIdx: -1,
+                countDown: 0,
 
             }
         },
         mounted() {
-            this.getQuestion().then(() => {
-                this.nextQuestion();
-            });
+
         },
         computed: {
             question() {
@@ -155,21 +167,55 @@
             }
         },
         methods: {
+            startTrain(){
+                this.getQuestion().then(() => {
+                    this.nextQuestion();
+                });
+            },
             getQuestion() {
                 return this.$http.getQuestionList().then(res => {
                     this.questionList = res.data;
                 });
             },
             nextQuestion() {
-                this.questionIdx = (this.questionIdx + 1) % this.questionList.length;
-                this.replayAnswer();
+                this.questionIdx++;
+                // clear current timer
+                if (countDownTimer) {
+                    this.countDown = 0;
+                    clearInterval(countDownTimer);
+                }
+                // alert warning
+                if (this.questionIdx == this.questionList.length) {
+                    // alert
+                    this.$refs.answerPlayer.pause();
+                    this.$alert('本轮对话，训练结束').then(() => {
+                        this.reAnswer();
+                    });
+                }else{
+                    this.playAnswer();
+                }
             },
-            replayAnswer() {
+            reAnswer() {
+                this.questionIdx = -1;
+                this.nextQuestion();
+            },
+            playAnswer() {
                 let player = this.$refs.answerPlayer;
-                console.log(this.filePath);
+                // console.log(this.filePath);
                 if (this.filePath) {
                     player.src = this.filePath;
                     player.play();
+                    player.onended = () => {
+                        // settimer
+                        this.countDown = 5;
+                        countDownTimer = setInterval(() => {
+                            this.countDown--;
+                            if (this.countDown == 0) {
+                                this.nextQuestion();
+                            }
+                        }, 1000);
+
+                    };
                 }
             }
         }
@@ -348,7 +394,9 @@
                             font-weight: bold;
                             margin-bottom: 10px;
                         }
+                        middle-question-group{
 
+                        }
                         .middle-quesiton-detail {
                             height: 150px;
                             margin-bottom: 5px;

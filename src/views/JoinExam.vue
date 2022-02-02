@@ -104,7 +104,7 @@
                             <el-button size="medium"
                                        :disabled="questionList.length==0||isRecording"
                                        @click="skipQuestion">
-                                跳过问题
+                                跳过问题{{countDown>0?`(${countDown}s)`:''}}
                             </el-button>
                             <el-button size="medium" type="danger">结束考试</el-button>
                         </div>
@@ -154,6 +154,7 @@
     var audioContext;
     var recorder;
     var timer;
+    let countDownTimer;
 
     export default {
         name: "JoinExam",
@@ -163,7 +164,7 @@
                 questionList: [],
                 questionIdx: -1,
                 hasAnswered: [], // 是否已经作答
-                isPlayingQuestion: false,
+                countDown: 0,
                 // recording
                 isRecording: false,
                 limitTime: 5 * 60,
@@ -202,12 +203,21 @@
                             audioUrl: undefined,
                         });
                     }
-                    this.questionIdx=0;
+                    this.questionIdx = 0;
                 });
             },
             skipQuestion() {
                 let idx = this.questionIdx;
                 this.questionIdx = idx + 1 >= this.questionList.length ? 0 : idx + 1;
+                this.countDown=0;
+                clearInterval(countDownTimer);
+            },
+            resetQuestion(){
+                // called when answer again
+                this.answered.stopTime = 0;
+                this.answered.judgeResult = undefined;
+                clearInterval(countDownTimer);
+                this.countDown=0;
             },
             // recording
             formatTime: function (time) {
@@ -255,7 +265,7 @@
                 } else {
                     return recorder.start().then(() => {
                         this.isRecording = true;
-                        this.answered.stopTime = 0;
+                        this.resetQuestion();
                         timer = setInterval(() => {
                             this.answered.stopTime++;
                             if (this.stopTime >= this.limitTime) {
@@ -298,7 +308,7 @@
                 // file:size,name,is_chunk
                 let res;
                 let audioFile = this.answered.audioFile;
-                let loading=this.$loading({target:'.judge-result'})
+                let loading = this.$loading({target: '.judge-result'})
                 if (this.chunkSend) {
                     let file = {
                         name: 'recorder.wav', size: audioFile.size,
@@ -312,6 +322,14 @@
                 res.then(data => {
                     loading.close();
                     this.answered.judgeResult = data.data.answer == true ? "正确" : "错误";
+                    // set the timer to next question
+                    this.countDown=5;
+                    countDownTimer = setInterval(() => {
+                        this.countDown--;
+                        if (this.countDown == 0) {
+                            this.skipQuestion();
+                        }
+                    }, 1000)
                 })
             },
             async chunkUpload(file) {
@@ -526,6 +544,18 @@
                         .button-group {
                             display: flex;
                             justify-content: flex-end;
+                            align-items: center;
+                            height: 36px;
+
+                            .count-down {
+                                height: 100%;
+                                line-height: 36px;
+                                margin-right: 20px;
+                                /*text-align: center;*/
+                                font-size: 14px;
+                                font-weight: bold;
+                                color: red;
+                            }
                         }
                     }
 
