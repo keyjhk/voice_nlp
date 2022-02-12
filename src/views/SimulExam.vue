@@ -78,17 +78,13 @@
             <div class="answer">
                 <!--                    进度条-->
                 <div class="steps">
-                    <el-steps :active="1" finish-status="success">
-                        <el-step title="步骤1"></el-step>
-                        <el-step title="步骤2"></el-step>
-                        <el-step title="步骤3"></el-step>
-                        <el-step title="步骤4"></el-step>
-                        <el-step title="步骤5"></el-step>
+                    <el-steps :active="questionIdx" finish-status="success">
+                        <el-step :title="`题目${idx}`" v-for="(idx) in questionList.length" :key="idx"></el-step>
                     </el-steps>
                 </div>
                 <!--                    提示文字-->
                 <div class="tips">
-                    <p>步骤1：开始接到商机话务</p>
+                    <p>接到商机话务</p>
                     <p>本步骤要求时长5分钟以内，以开始录音和结束录音的时间计算！</p>
                     <p>请点击播放按钮，听录音，播放完成后，点击开始录音进行回答。</p>
                 </div>

@@ -78,17 +78,15 @@
             <div class="answer">
                 <!--                    进度条-->
                 <div class="steps">
-                    <el-steps :active="1" finish-status="success">
-                        <el-step title="步骤1"></el-step>
-                        <el-step title="步骤2"></el-step>
-                        <el-step title="步骤3"></el-step>
-                        <el-step title="步骤4"></el-step>
-                        <el-step title="步骤5"></el-step>
+                    <el-steps :active="questionIdx" process-status="wait">
+                        <el-step :title="`题目${idx+1}`" :status="stepStatus(answered.judgeResult,idx)"
+                                 v-for="(answered,idx) in hasAnswered" :key="idx">
+                        </el-step>
                     </el-steps>
                 </div>
                 <!--                    提示文字-->
                 <div class="tips">
-                    <p>步骤1：开始接到商机话务</p>
+                    <p>接到商机话务</p>
                     <p>本步骤要求时长5分钟以内，以开始录音和结束录音的时间计算！</p>
                     <p>请点击播放按钮，听录音，播放完成后，点击开始录音进行回答。</p>
                 </div>
@@ -134,13 +132,17 @@
                 <!--                    判定区域-->
                 <div class="judge-group">
                     <p class="title">判定区</p>
-                    <div class="judge-result" v-show="answered.judgeResult!=undefined">
-                        <div class="time-tips">
-                            <span class="time-tip">要求时限：5:00</span>
-                            <span class="time-tip">当前用时：{{recorderTimeText}}</span>
+                    <div class="judge-result" >
+<!--                        父div会显示loading-->
+                        <div v-show="answered.judgeResult!=undefined">
+                            <div class="time-tips">
+                                <span class="time-tip">要求时限：5:00</span>
+                                <span class="time-tip">当前用时：{{recorderTimeText}}</span>
+                            </div>
+                            <p class="result">本次练习，您回答
+                                <span style="color: red;">{{answered.judgeResult}}</span></p>
                         </div>
-                        <p class="result">本次练习，您回答
-                            <span style="color: red;">{{answered.judgeResult}}</span></p>
+
                     </div>
                 </div>
             </div>
@@ -191,7 +193,7 @@
         },
 
         methods: {
-            // quesitons
+            // questions
             getQuestion() {
                 return this.$http.getQuestionList().then(res => {
                     this.questionList = res.data;
@@ -218,6 +220,17 @@
                 this.answered.judgeResult = undefined;
                 clearInterval(countDownTimer);
                 this.countDown=0;
+            },
+            stepStatus(judgeResult,idx){
+                if(judgeResult=='正确'){
+                    return 'success';
+                }
+                else if (judgeResult=='错误'){
+                    return 'error';
+                }else{
+                    // undefined? highlight current question
+                    return idx==this.questionIdx?'process':'wait';
+                }
             },
             // recording
             formatTime: function (time) {
