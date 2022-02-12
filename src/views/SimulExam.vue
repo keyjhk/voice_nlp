@@ -95,17 +95,19 @@
                         <p class="middle-title">开始接到商机话务</p>
                         <p class="middle-question">题目{{questionIdx+1}}：请听以下录音，并回答</p>
                         <!--                        题目详情-->
-                        <div class="middle-question-group" >
+                        <div class="middle-question-group">
                             <p class="middle-quesiton-detail">
-                                {{question.question}}
+                                {{currentPlaying?"正在播放"+currentPlaying:currentPlaying}}
                             </p>
+                            <video ref="questionPlayer" src="" controls="controls" class="player"></video>
                             <video ref="answerPlayer" src=""
                                    controls="controls" class="player"></video>
 
                             <div class="button-group">
-                                <el-button  type="primary"
-                                            @click="startTrain"
-                                            v-show="questionList.length==0">开始训练</el-button>
+                                <el-button type="primary"
+                                           @click="startTrain"
+                                           v-show="questionList.length==0">开始训练
+                                </el-button>
 
                                 <el-button v-show="questionList.length>0"
                                            @click="reAnswer"
@@ -148,7 +150,7 @@
                 questionList: [],
                 questionIdx: -1,
                 countDown: 0,
-
+                currentPlaying: '',
             }
         },
         mounted() {
@@ -158,12 +160,9 @@
             question() {
                 return this.questionIdx > -1 ? this.questionList[this.questionIdx] : {}
             },
-            filePath() {
-                return BASE_URL + STATIC_FILES + this.question.path;
-            }
         },
         methods: {
-            startTrain(){
+            startTrain() {
                 this.getQuestion().then(() => {
                     this.nextQuestion();
                 });
@@ -184,25 +183,48 @@
                 if (this.questionIdx == this.questionList.length) {
                     // alert
                     this.$refs.answerPlayer.pause();
+                    this.$refs.questionPlayer.pause();
                     this.$alert('本轮对话，训练结束').then(() => {
                         this.reAnswer();
                     });
-                }else{
-                    this.playAnswer();
+                } else {
+                    this.playQuestion();
                 }
             },
             reAnswer() {
-                this.questionIdx = -1;
+                this.questionIdx = -1; // reset questionIdx
                 this.nextQuestion();
             },
+            play() {
+                this.playQuestion();
+            },
+            filePath(path){
+                return BASE_URL + STATIC_FILES + path;
+            },
+            playQuestion() {
+                this.$refs.answerPlayer.pause();
+                let questionPlayer = this.$refs.questionPlayer;
+                let fpath = this.filePath(this.question.q_path);
+                if (fpath) {
+                    this.currentPlaying = "问题";
+                    questionPlayer.src = fpath;
+                    questionPlayer.play();
+                    questionPlayer.onended = () => {
+                        // settimeout
+                        this.currentPlaying = "";
+                        setTimeout(this.playAnswer(), 2000)
+                    }
+                }
+            },
             playAnswer() {
-                let player = this.$refs.answerPlayer;
-                // console.log(this.filePath);
-                if (this.filePath) {
-                    player.src = this.filePath;
-                    player.play();
-                    player.onended = () => {
-                        // settimer
+                let answerPlayer = this.$refs.answerPlayer;
+                let fpath = this.filePath(this.question.a_path);
+                if (fpath) {
+                    answerPlayer.src = fpath;
+                    this.currentPlaying = "答案";
+                    answerPlayer.play();
+                    answerPlayer.onended = () => {
+                        // settimer ,auto next question when ended playing
                         this.countDown = 5;
                         countDownTimer = setInterval(() => {
                             this.countDown--;
@@ -390,9 +412,11 @@
                             font-weight: bold;
                             margin-bottom: 10px;
                         }
-                        middle-question-group{
+
+                        middle-question-group {
 
                         }
+
                         .middle-quesiton-detail {
                             height: 150px;
                             margin-bottom: 5px;

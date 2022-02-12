@@ -96,8 +96,10 @@
                     <div class="middle">
                         <p class="middle-title">开始接到商机话务</p>
                         <p class="middle-question">题目{{questionIdx+1}}：请听以下录音，并回答</p>
-                        <p class="middle-quesiton-detail">
-                            {{questionList.length>0?questionList[questionIdx].question:''}}</p>
+                        <div class="middle-quesiton-detail">
+                            <video :src="filePath(question.q_path)"
+                                   controls="controls" style="height: 100px;width: 100%;" autoplay="autoplay"></video>
+                        </div>
                         <div class="button-group">
                             <el-button size="medium"
                                        :disabled="questionList.length==0||isRecording"
@@ -151,6 +153,7 @@
 </template>
 
 <script>
+    import {BASE_URL,STATIC_FILES} from "../config";
     import Recorder from "@/utils/recorder/recorder";
 
     var audioContext;
@@ -197,6 +200,7 @@
             getQuestion() {
                 return this.$http.getQuestionList().then(res => {
                     this.questionList = res.data;
+                    console.log(this.questionList);
                     for (let i = 0; i < res.data.length; i++) {
                         this.hasAnswered.push({
                             stopTime: 0,
@@ -231,6 +235,9 @@
                     // undefined? highlight current question
                     return idx==this.questionIdx?'process':'wait';
                 }
+            },
+            filePath(path){
+                return BASE_URL + STATIC_FILES + path;
             },
             // recording
             formatTime: function (time) {
