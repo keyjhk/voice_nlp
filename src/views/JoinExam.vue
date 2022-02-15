@@ -97,6 +97,7 @@
                         <p class="middle-title">开始接到商机话务</p>
                         <p class="middle-question">题目{{questionIdx+1}}：请听以下录音，并回答</p>
                         <div class="middle-quesiton-detail">
+                            {{question.question?question.question:''}}
                             <video :src="filePath(question.q_path)"
                                    controls="controls" style="height: 100px;width: 100%;" autoplay="autoplay"></video>
                         </div>

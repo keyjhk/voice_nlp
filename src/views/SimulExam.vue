@@ -96,9 +96,29 @@
                         <p class="middle-question">题目{{questionIdx+1}}：请听以下录音，并回答</p>
                         <!--                        题目详情-->
                         <div class="middle-question-group">
-                            <p class="middle-quesiton-detail">
-                                {{currentPlaying?"正在播放"+currentPlaying:currentPlaying}}
-                            </p>
+                            <div class="middle-quesiton-detail">
+
+                                <!--                                    用户-->
+                                <div :style="checkerIconStyle('question')"
+                                     style="display: flex;">
+                                    <div class="icon-group">
+                                        <i class="el-icon-s-custom icon"></i>
+                                        <p class="annotate">用户</p>
+                                    </div>
+                                    <span class="text">{{question.question?question.question:''}}</span>
+                                </div>
+
+
+                                <div :style="checkerIconStyle('answer')"
+                                     style="font-size: 50px;margin-top: 20px;display: flex;">
+                                    <div class="icon-group">
+                                        <i class="el-icon-s-check icon"></i>
+                                        <p class="annotate">客服</p>
+                                    </div>
+                                    <i class="el-icon-microphone" style="line-height: 50px;"
+                                       v-show="currentPlaying=='answer'&&microShow"></i>
+                                </div>
+                            </div>
                             <video ref="questionPlayer" src="" controls="controls" class="player"></video>
                             <video ref="answerPlayer" src=""
                                    controls="controls" class="player"></video>
@@ -151,9 +171,13 @@
                 questionIdx: -1,
                 countDown: 0,
                 currentPlaying: '',
+                microShow: false, // control micro-icon flash
             }
         },
         mounted() {
+            setInterval(() => {
+                this.microShow = !this.microShow; // flash
+            }, 500);
 
         },
         computed: {
@@ -162,6 +186,16 @@
             },
         },
         methods: {
+            //css
+            checkerIconStyle(type) {
+                let opacity = this.currentPlaying == type ? '1' : '0.3';
+                let color = this.currentPlaying == type ? 'red' : 'black';
+                return {
+                    opacity: opacity,
+                    color: color,
+                }
+            },
+            // train
             startTrain() {
                 this.getQuestion().then(() => {
                     this.nextQuestion();
@@ -198,7 +232,7 @@
             play() {
                 this.playQuestion();
             },
-            filePath(path){
+            filePath(path) {
                 return BASE_URL + STATIC_FILES + path;
             },
             playQuestion() {
@@ -206,7 +240,7 @@
                 let questionPlayer = this.$refs.questionPlayer;
                 let fpath = this.filePath(this.question.q_path);
                 if (fpath) {
-                    this.currentPlaying = "问题";
+                    this.currentPlaying = "question";
                     questionPlayer.src = fpath;
                     questionPlayer.play();
                     questionPlayer.onended = () => {
@@ -221,11 +255,12 @@
                 let fpath = this.filePath(this.question.a_path);
                 if (fpath) {
                     answerPlayer.src = fpath;
-                    this.currentPlaying = "答案";
+                    this.currentPlaying = "answer";
                     answerPlayer.play();
                     answerPlayer.onended = () => {
                         // settimer ,auto next question when ended playing
                         this.countDown = 5;
+                        this.currentPlaying = '';
                         countDownTimer = setInterval(() => {
                             this.countDown--;
                             if (this.countDown == 0) {
@@ -421,6 +456,27 @@
                             height: 150px;
                             margin-bottom: 5px;
                             font-size: 20px;
+
+                            .icon-group {
+                                margin-right: 10px;
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                justify-content: flex-start;
+
+                                .icon {
+                                    font-size: 35px;
+                                }
+
+                                .annotate {
+                                    font-size: 5px;
+                                }
+
+                            }
+
+                            .text {
+                                line-height: 40px;
+                            }
                         }
 
                         .player {
