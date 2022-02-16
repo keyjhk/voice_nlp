@@ -97,9 +97,34 @@
                         <p class="middle-title">开始接到商机话务</p>
                         <p class="middle-question">题目{{questionIdx+1}}：请听以下录音，并回答</p>
                         <div class="middle-quesiton-detail">
-                            {{question.question?question.question:''}}
+                            <!--                            用户-->
+                            <div style="display: flex;">
+                                <div class="icon-group">
+                                    <i class="el-icon-s-custom icon"></i>
+                                    <p class="annotate">用户</p>
+                                </div>
+                                <div>
+                                    <p class="text">{{question.question?question.question:''}}</p>
+
+                                </div>
+
+                            </div>
                             <video :src="filePath(question.q_path)"
-                                   controls="controls" style="height: 100px;width: 100%;" autoplay="autoplay"></video>
+                                   controls="controls" style="height: 30px;width: 100%;margin-top: 10px"
+                                   autoplay="autoplay"></video>
+
+                            <!--客服-->
+                            <div style="visibility: hidden;font-size: 50px;
+                            margin-top: 20px;display: flex;">
+                                <div class="icon-group">
+                                    <i class="el-icon-s-check icon"></i>
+                                    <p class="annotate">客服</p>
+                                </div>
+                                <i class="el-icon-microphone" style="line-height: 50px;"
+                                   v-show="currentPlaying=='answer'&&microShow"></i>
+                            </div>
+
+
                         </div>
                         <div class="button-group">
                             <el-button size="medium"
@@ -135,8 +160,8 @@
                 <!--                    判定区域-->
                 <div class="judge-group">
                     <p class="title">判定区</p>
-                    <div class="judge-result" >
-<!--                        父div会显示loading-->
+                    <div class="judge-result">
+                        <!--                        父div会显示loading-->
                         <div v-show="answered.judgeResult!=undefined">
                             <div class="time-tips">
                                 <span class="time-tip">要求时限：5:00</span>
@@ -154,7 +179,7 @@
 </template>
 
 <script>
-    import {BASE_URL,STATIC_FILES} from "../config";
+    import {BASE_URL, STATIC_FILES} from "../config";
     import Recorder from "@/utils/recorder/recorder";
 
     var audioContext;
@@ -166,6 +191,7 @@
         name: "JoinExam",
         data: () => {
             return {
+                currentPlaying: '',
                 // question
                 questionList: [],
                 questionIdx: -1,
@@ -197,11 +223,20 @@
         },
 
         methods: {
+            //css
+            checkerIconStyle(type) {
+                let opacity = this.currentPlaying == type ? '1' : '0.3';
+                let color = this.currentPlaying == type ? 'red' : 'black';
+                return {
+                    opacity: opacity,
+                    color: color,
+                }
+            },
             // questions
             getQuestion() {
                 return this.$http.getQuestionList().then(res => {
                     this.questionList = res.data;
-                    console.log(this.questionList);
+                    // console.log(this.questionList);
                     for (let i = 0; i < res.data.length; i++) {
                         this.hasAnswered.push({
                             stopTime: 0,
@@ -216,28 +251,27 @@
             skipQuestion() {
                 let idx = this.questionIdx;
                 this.questionIdx = idx + 1 >= this.questionList.length ? 0 : idx + 1;
-                this.countDown=0;
+                this.countDown = 0;
                 clearInterval(countDownTimer);
             },
-            resetQuestion(){
+            resetQuestion() {
                 // called when answer again
                 this.answered.stopTime = 0;
                 this.answered.judgeResult = undefined;
                 clearInterval(countDownTimer);
-                this.countDown=0;
+                this.countDown = 0;
             },
-            stepStatus(judgeResult,idx){
-                if(judgeResult=='正确'){
+            stepStatus(judgeResult, idx) {
+                if (judgeResult == '正确') {
                     return 'success';
-                }
-                else if (judgeResult=='错误'){
+                } else if (judgeResult == '错误') {
                     return 'error';
-                }else{
+                } else {
                     // undefined? highlight current question
-                    return idx==this.questionIdx?'process':'wait';
+                    return idx == this.questionIdx ? 'process' : 'wait';
                 }
             },
-            filePath(path){
+            filePath(path) {
                 return BASE_URL + STATIC_FILES + path;
             },
             // recording
@@ -344,7 +378,7 @@
                     loading.close();
                     this.answered.judgeResult = data.data.answer == true ? "正确" : "错误";
                     // set the timer to next question
-                    this.countDown=5;
+                    this.countDown = 5;
                     countDownTimer = setInterval(() => {
                         this.countDown--;
                         if (this.countDown == 0) {
@@ -560,6 +594,27 @@
                             height: 200px;
                             margin-bottom: 5px;
                             font-size: 20px;
+
+                            .icon-group {
+                                margin-right: 10px;
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                justify-content: flex-start;
+
+                                .icon {
+                                    font-size: 35px;
+                                }
+
+                                .annotate {
+                                    font-size: 5px;
+                                }
+
+                            }
+
+                            .text {
+                                line-height: 40px;
+                            }
                         }
 
                         .button-group {

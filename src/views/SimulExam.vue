@@ -78,8 +78,10 @@
             <div class="answer">
                 <!--                    进度条-->
                 <div class="steps">
-                    <el-steps :active="questionIdx" finish-status="success">
-                        <el-step :title="`题目${idx}`" v-for="(idx) in questionList.length" :key="idx"></el-step>
+                    <el-steps :active="questionIdx" process-status="wait">
+                        <el-step :title="`题目${idx+1}`" :status="stepStatus(answered.judgeResult,idx)"
+                                 v-for="(answered,idx) in hasAnswered" :key="idx">
+                        </el-step>
                     </el-steps>
                 </div>
                 <!--                    提示文字-->
@@ -94,64 +96,83 @@
                     <div class="middle">
                         <p class="middle-title">开始接到商机话务</p>
                         <p class="middle-question">题目{{questionIdx+1}}：请听以下录音，并回答</p>
-                        <!--                        题目详情-->
-                        <div class="middle-question-group">
-                            <div class="middle-quesiton-detail">
+                        <div class="middle-quesiton-detail">
+                            <!--                            用户-->
+                            <div style="display: flex;">
+                                <div class="icon-group">
+                                    <i class="el-icon-s-custom icon"></i>
+                                    <p class="annotate">用户</p>
+                                </div>
+                                <div>
+                                    <p class="text">{{question.question?question.question:''}}</p>
 
-                                <!--                                    用户-->
-                                <div :style="checkerIconStyle('question')"
-                                     style="display: flex;">
-                                    <div class="icon-group">
-                                        <i class="el-icon-s-custom icon"></i>
-                                        <p class="annotate">用户</p>
-                                    </div>
-                                    <span class="text">{{question.question?question.question:''}}</span>
                                 </div>
 
+                            </div>
+                            <video ref="questionPlayer" :src="filePath(question.q_path)"
+                                   controls="controls" style="height: 30px;width: 100%;margin-top: 10px"
+                                   autoplay="autoplay"></video>
 
-                                <div :style="checkerIconStyle('answer')"
-                                     style="font-size: 50px;margin-top: 20px;display: flex;">
-                                    <div class="icon-group">
-                                        <i class="el-icon-s-check icon"></i>
-                                        <p class="annotate">客服</p>
-                                    </div>
-                                    <i class="el-icon-microphone" style="line-height: 50px;"
-                                       v-show="currentPlaying=='answer'&&microShow"></i>
+                            <!--客服-->
+                            <div style="font-size: 50px;margin-top: 20px;display: flex;">
+                                <div class="icon-group">
+                                    <i class="el-icon-s-check icon"></i>
+                                    <p class="annotate">客服</p>
                                 </div>
+                                <i class="el-icon-microphone" style="line-height: 50px;"
+                                   v-show="currentPlaying=='answer'&&microShow"></i>
                             </div>
-                            <video ref="questionPlayer" src="" controls="controls" class="player"></video>
-                            <video ref="answerPlayer" src=""
-                                   controls="controls" class="player"></video>
+                            <video ref="answerPlayer" :src="filePath(question.a_path)"
+                                   controls="controls"
+                                   style="display: none;height: 30px;width: 100%;margin-top: 10px"></video>
 
-                            <div class="button-group">
-                                <el-button type="primary"
-                                           @click="startTrain"
-                                           v-show="questionList.length==0">开始训练
-                                </el-button>
-
-                                <el-button v-show="questionList.length>0"
-                                           @click="reAnswer"
-                                           type="danger">重新开始
-                                </el-button>
-                                <el-button v-show="questionList.length>0"
-                                           @click="nextQuestion">
-                                    跳过问题{{countDown>0?`(${countDown}s)`:''}}
-                                </el-button>
-                            </div>
                         </div>
-
+                        <div class="button-group">
+                            <el-button size="medium"
+                                       :disabled="questionList.length==0||isRecording"
+                                       @click="nextQuestion">
+                                跳过问题{{countDown>0?`(${countDown}s)`:''}}
+                            </el-button>
+                            <el-button size="medium" type="warning" @click="play()">重新播放</el-button>
+                        </div>
                     </div>
-
+                    <div class="right">
+                        <p class="right-title">答题区</p>
+                        <div class="recorder-bar">
+                            <i v-show="!isRecording" class="iconfont icon-24gf-play"></i>
+                            <i v-show="isRecording" class="iconfont icon-sound"></i>
+                            <el-progress class="progress" :show-text="false"
+                                         :stroke-width="10" :percentage="parseInt(answered.stopTime*100/limitTime)"
+                                         color="#2E70ED">
+                            </el-progress>
+                            <span>{{recorderTimeText}}/{{parseInt(limitTime/60)}}:00</span>
+                        </div>
+                        <video :src="answered.audioUrl" controls="controls" class="player"></video>
+                        <div class="right-button-group">
+                            <el-button size="medium" :type="isRecording?'warning':'primary'"
+                                       :disabled="currentPlaying!=''"
+                                       @click="controlRecording">{{isRecording?'重新回答':'开始回答'}}
+                            </el-button>
+                            <el-button :disabled="!isRecording" size="medium" type="success" @click="submitRecording">
+                                提交回答
+                            </el-button>
+                        </div>
+                    </div>
                 </div>
                 <!--                    判定区域-->
                 <div class="judge-group">
                     <p class="title">判定区</p>
                     <div class="judge-result">
-                        <div class="time-tips">
-                            <span class="time-tip">要求时限：5:00</span>
-                            <span class="time-tip">当前用时：5:00</span>
+                        <!--                        父div会显示loading-->
+                        <div v-show="answered.judgeResult!=undefined">
+                            <div class="time-tips">
+                                <span class="time-tip">要求时限：5:00</span>
+                                <span class="time-tip">当前用时：{{recorderTimeText}}</span>
+                            </div>
+                            <p class="result">本次练习，您回答
+                                <span style="color: red;">{{answered.judgeResult}}</span></p>
                         </div>
-                        <p class="result">本次练习，您回答</p>
+
                     </div>
                 </div>
             </div>
@@ -160,31 +181,54 @@
 </template>
 
 <script>
-    import {BASE_URL, STATIC_FILES} from "@/config";
+    import {BASE_URL, STATIC_FILES} from "../config";
+    import Recorder from "@/utils/recorder/recorder";
 
-    var countDownTimer;
+    var audioContext;
+    var recorder;
+    var timer;
+    let countDownTimer;
+
     export default {
         name: "SimulExam",
         data: () => {
             return {
+                currentPlaying: '',
+                microShow:false,
+                // question
                 questionList: [],
                 questionIdx: -1,
+                hasAnswered: [], // 是否已经作答
                 countDown: 0,
-                currentPlaying: '',
-                microShow: false, // control micro-icon flash
+                // recording
+                isRecording: false,
+                limitTime: 5 * 60,
+                // upload
+                chunkSend: false,
+
             }
         },
+
         mounted() {
             setInterval(() => {
                 this.microShow = !this.microShow; // flash
             }, 500);
-
+            // get
+            this.getQuestion();
         },
         computed: {
             question() {
-                return this.questionIdx > -1 ? this.questionList[this.questionIdx] : {}
+                return this.questionIdx > -1 ? this.questionList[this.questionIdx] : '';
             },
+            answered() {
+                return this.questionIdx > -1 ? this.hasAnswered[this.questionIdx] : {};
+            },
+            recorderTimeText: function () {
+                return this.formatTime(this.answered.stopTime);
+            },
+
         },
+
         methods: {
             //css
             checkerIconStyle(type) {
@@ -195,48 +239,78 @@
                     color: color,
                 }
             },
-            // train
-            startTrain() {
-                this.getQuestion().then(() => {
-                    this.nextQuestion();
-                });
-            },
+            // questions
             getQuestion() {
                 return this.$http.getQuestionList().then(res => {
                     this.questionList = res.data;
+                    // console.log(this.questionList);
+                    for (let i = 0; i < res.data.length; i++) {
+                        this.hasAnswered.push({
+                            stopTime: 0,
+                            judgeResult: undefined,
+                            audioFile: undefined,
+                            audioUrl: undefined,
+                        });
+                    }
+                    this.nextQuestion();
                 });
             },
             nextQuestion() {
                 this.questionIdx++;
-                // clear current timer
-                if (countDownTimer) {
-                    this.countDown = 0;
-                    clearInterval(countDownTimer);
-                }
+                this.countDown = 0;
+                clearInterval(countDownTimer);
+
                 // alert warning
                 if (this.questionIdx == this.questionList.length) {
                     // alert
                     this.$refs.answerPlayer.pause();
                     this.$refs.questionPlayer.pause();
                     this.$alert('本轮对话，训练结束').then(() => {
-                        this.reAnswer();
+                        this.questionIdx = -1; // reset questionIdx
+                        this.nextQuestion();
                     });
                 } else {
                     this.playQuestion();
                 }
             },
-            reAnswer() {
-                this.questionIdx = -1; // reset questionIdx
-                this.nextQuestion();
+            resetQuestion() {
+                // called when answer again,to clear history
+                this.answered.stopTime = 0;
+                this.answered.judgeResult = undefined;
+                clearInterval(countDownTimer);
+                this.countDown = 0;
             },
-            play() {
-                this.playQuestion();
+            stepStatus(judgeResult, idx) {
+                if (judgeResult == '正确') {
+                    return 'success';
+                } else if (judgeResult == '错误') {
+                    return 'error';
+                } else {
+                    // undefined? highlight current question
+                    return idx == this.questionIdx ? 'process' : 'wait';
+                }
             },
             filePath(path) {
                 return BASE_URL + STATIC_FILES + path;
             },
+            // recording
+            formatTime: function (time) {
+                if (time > 60) {
+                    let minutes = parseInt(time / 60);
+                    let seconds = time % 60;
+                    return minutes + ':' + seconds;
+                } else {
+                    return time < 10 ? '00:0' + time : '00:' + time;
+                }
+            },
+            //play
+            play() {
+                this.playQuestion();
+            },
+
             playQuestion() {
                 this.$refs.answerPlayer.pause();
+                // this.$refs.question.pause();
                 let questionPlayer = this.$refs.questionPlayer;
                 let fpath = this.filePath(this.question.q_path);
                 if (fpath) {
@@ -258,25 +332,145 @@
                     this.currentPlaying = "answer";
                     answerPlayer.play();
                     answerPlayer.onended = () => {
-                        // settimer ,auto next question when ended playing
-                        this.countDown = 5;
                         this.currentPlaying = '';
-                        countDownTimer = setInterval(() => {
-                            this.countDown--;
-                            if (this.countDown == 0) {
-                                this.nextQuestion();
-                            }
-                        }, 1000);
+                        // settimer ,auto next question when ended playing
+                        // this.countDown = 5;
+                        // countDownTimer = setInterval(() => {
+                        //     this.countDown--;
+                        //     if (this.countDown == 0) {
+                        //         this.nextQuestion();
+                        //     }
+                        // }, 1000);
 
                     };
                 }
-            }
-        }
+            },
+            //recorder
+            initRecorder() {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                console.log('init audio', audioContext.state);
+                recorder = new Recorder(audioContext, {
+                    // An array of 255 Numbers
+                    // You can use this to visualize the audio stream
+                    // If you use react, check out react-wave-stream
+                    onAnalysed: data => {
+                        // console.log(data);
+                        data;
+                    }
+                });
+                return navigator.mediaDevices.getUserMedia({audio: true})
+                    .then(stream => {
+                        recorder.init(stream);
+                        console.log('recorder init successfully')
+                    })
+                    .catch(err => console.log('Uh oh... unable to get stream...', err));
 
+            },
+            controlRecording: function () {
+                if (this.isRecording) {
+                    this.restartRecording();
+                } else {
+                    this.startRecording();
+                }
+
+            },
+            startRecording: function () {
+                if (recorder == undefined) {
+                    this.initRecorder().then(() => {
+                        this.startRecording();
+                    });
+                } else {
+                    return recorder.start().then(() => {
+                        this.isRecording = true;
+                        this.resetQuestion();
+                        timer = setInterval(() => {
+                            this.answered.stopTime++;
+                            if (this.stopTime >= this.limitTime) {
+                                this.stopRecording();
+                            }
+                        }, 1000)
+                    }).catch(err => {
+                        console.log(err)
+                    });
+                }
+
+            },
+            stopRecording: function () {
+                return recorder.stop()
+                    .then(({blob, fileUrl}) => {
+                        // blob:binary files;buffer: AudWioBuffer;file_url
+                        console.log('stop recording');
+                        this.isRecording = false;
+                        clearInterval(timer);
+                        this.answered.audioFile = blob;
+                        this.answered.audioUrl = fileUrl;  //update file_url
+                    }).catch(err => {
+                        console.log(err);
+                    });
+            },
+            restartRecording: function () {
+                if (this.isRecording) {
+                    this.stopRecording().then(() => {
+                        this.startRecording();
+                    });
+                }
+
+            },
+            submitRecording: function () {
+                this.stopRecording().then(() => {
+                    this.uploadRecording();
+                });
+            },
+            uploadRecording: function () {
+                // file:size,name,is_chunk
+                let res;
+                let audioFile = this.answered.audioFile;
+                let loading = this.$loading({target: '.judge-result'})
+                if (this.chunkSend) {
+                    let file = {
+                        name: 'recorder.wav', size: audioFile.size,
+                        file: audioFile
+                    }
+                    res = this.chunkUpload(file);
+                } else {
+                    let answer = this.question.answer;
+                    res = this.$http.judgeAnswer(audioFile, answer);
+                }
+                res.then(data => {
+                    loading.close();
+                    this.answered.judgeResult = data.data.answer == true ? "正确" : "错误";
+                    // set the timer to next question
+                    this.countDown = 5;
+                    countDownTimer = setInterval(() => {
+                        this.countDown--;
+                        if (this.countDown == 0) {
+                            this.nextQuestion();
+                        }
+                    }, 1000)
+                })
+            },
+            async chunkUpload(file) {
+                // file {name,size,file} ,for chunk
+                let chunkSize = 1024 * 1024;
+                let chunks = Math.ceil(file.size / chunkSize);
+                file.chunks = chunks; //
+                for (let i = 0; i < chunks; i++) {
+                    let fname_part = `${file.name}_part_${i + 1}`;
+                    let end = (i + 1) * chunkSize <= file.size ? (i + 1) * chunkSize : file.size;
+                    let file_part = file.file.slice(i * chunkSize, end)
+                    let formData = new FormData();
+                    formData.set('file', file_part, fname_part)
+                    formData.set('is_chunk', true)
+                    await this.$http.sendRecorder(formData)
+                }
+                return this.$http.mergeFile(file);
+            },
+        }
     }
 </script>
 
 <style lang="scss" scoped>
+
 
     .mainer {
         margin-top: 10px;
@@ -333,6 +527,19 @@
                         height: 100%;
                         text-align: center;
                         display: flex;
+
+                        .el-descriptions-item__cell {
+                            height: 90px;
+                            text-align: center;
+                        }
+
+                        .el-descriptions-item__label {
+                            width: 143px;
+                        }
+
+                        .el-descriptions-item__content {
+                            width: 115px;
+                        }
 
                     }
 
@@ -427,11 +634,11 @@
 
                     .middle {
                         padding: 20px 35px;
-                        /*width: 1100px;*/
-                        flex: 1;
+                        width: 720px;
+                        margin-right: 20px;
                         display: flex;
                         flex-direction: column;
-                        justify-content: space-between;
+                        justify-content: space-around;
 
                         .middle-title {
                             color: #3a8ee6;
@@ -443,17 +650,10 @@
                         .middle-question {
                             height: 40px;
                             line-height: 40px;
-                            font-size: 20px;
-                            font-weight: bold;
-                            margin-bottom: 10px;
-                        }
-
-                        middle-question-group {
-
                         }
 
                         .middle-quesiton-detail {
-                            height: 150px;
+                            height: 200px;
                             margin-bottom: 5px;
                             font-size: 20px;
 
@@ -479,17 +679,61 @@
                             }
                         }
 
+                        .button-group {
+                            display: flex;
+                            justify-content: flex-end;
+                            align-items: center;
+                            height: 36px;
+
+                            .count-down {
+                                height: 100%;
+                                line-height: 36px;
+                                margin-right: 20px;
+                                /*text-align: center;*/
+                                font-size: 14px;
+                                font-weight: bold;
+                                color: red;
+                            }
+                        }
+                    }
+
+                    .right {
+                        padding: 20px 35px;
+                        width: 380px;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: space-between;
+
+                        .right-title {
+                            padding: 0px 20px;
+                            height: 35px;
+                            line-height: 35px;
+                            border: 1px solid rgba(233, 233, 233, 1);
+                            background: rgb(243, 243, 243);
+
+                        }
+
+                        .recorder-bar {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+
+                            .progress {
+                                width: 100%;
+                                margin: 0px 5px;
+                            }
+                        }
+
                         .player {
                             height: 50px;
                             display: none;
                         }
 
-                        .button-group {
+                        .right-button-group {
                             display: flex;
-                            justify-content: flex-end;
+                            justify-content: space-around;
                         }
                     }
-
                 }
 
                 .judge-group {
@@ -506,8 +750,7 @@
 
                     .judge-result {
                         height: 170px;
-                        /*display: flex;*/
-                        visibility: hidden;
+                        display: flex;
                         flex-direction: column;
                         justify-content: space-evenly;
 
@@ -524,6 +767,7 @@
                             height: 20px;
                             line-height: 20px;
                             font-size: 16px;
+
                         }
                     }
                 }
@@ -531,20 +775,4 @@
         }
     }
 
-
-</style>
-
-<style lang="scss">
-    .el-descriptions-item__cell {
-        height: 90px;
-        text-align: center;
-    }
-
-    .el-descriptions-item__label {
-        width: 143px;
-    }
-
-    .el-descriptions-item__content {
-        width: 115px;
-    }
 </style>
