@@ -137,7 +137,7 @@
                         </div>
                     </div>
                     <div class="right">
-                        <p class="right-title">答题区</p>
+                        <p class="right-title">跟读区</p>
                         <div class="recorder-bar">
                             <i v-show="!isRecording" class="iconfont icon-24gf-play"></i>
                             <i v-show="isRecording" class="iconfont icon-sound"></i>
@@ -151,10 +151,10 @@
                         <div class="right-button-group">
                             <el-button size="medium" :type="isRecording?'warning':'primary'"
                                        :disabled="currentPlaying!=''"
-                                       @click="controlRecording">{{isRecording?'重新回答':'开始回答'}}
+                                       @click="controlRecording">{{isRecording?'重新跟读':'开始跟读'}}
                             </el-button>
                             <el-button :disabled="!isRecording" size="medium" type="success" @click="submitRecording">
-                                提交回答
+                                提交跟读
                             </el-button>
                         </div>
                     </div>
