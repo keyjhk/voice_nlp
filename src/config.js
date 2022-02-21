@@ -1,4 +1,4 @@
-export const BASE_URL = 'https://xuptnlp.xyz:8888';
+export const BASE_URL = 'https://xuptnlp.xyz:8899';
 // export const BASE_URL = 'http://127.0.0.1:8000';
 export const STATIC_FILES = '/static/files/' // where to store static audio files
 // for recorder
